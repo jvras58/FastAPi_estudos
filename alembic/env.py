@@ -16,7 +16,7 @@ config = context.config
 # this will overwrite the ini-file sqlalchemy.url path
 # with the path given in the config of the main code
 
-config.set_main_option("sqlalchemy.url", "postgresql+psycopg2://postgres:postgres@localhost:5438/postgres")
+config.set_main_option("sqlalchemy.url", "postgresql+psycopg2://postgres:postgres@localhost:5439/postgres")
 #------------------------------------------------------------#
 
 # Interpret the config file for Python logging.
@@ -30,7 +30,11 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 # ---------------- LOADING Models -------------------------#
-from database.models import Base
+from user.user_model import Base
+from arealocation.area_model import Base
+from reserva.reserva_model import Base
+
+
 
 #------------------------------------------------------------#
 # target_metadata = None
