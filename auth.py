@@ -3,7 +3,7 @@ from fastapi import Depends
 from passlib.context import CryptContext
 from jose import jwt
 
-import database.crud as crud 
+import user.crud_user as crud 
 from database.get_db import SessionLocal, get_db
 
 SECRET_KEY = "2b9297ddf50a5336ba333962928ce57a1db91464c45c1831d26a4e4b23f5889d"

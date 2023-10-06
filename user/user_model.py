@@ -4,12 +4,13 @@ from sqlalchemy.orm import relationship
 from database.base import Base
 
 # Usuário:tem uma relação de um para muitos com as tabelas Reserva e Área. Cada usuário pode ter várias reservas e áreas.
-
+# FIXME: USUARIO NÃO DEVE TER USUARIO_ID EM AREAS (NÃO PODE HAVER ESSE RELACIONAMENTO..)
 class Usuario(Base):
     __tablename__ = 'usuario'
 
     id = Column(UUID, primary_key=True, index=True)
-    email = Column(String(50), primary_key=True)
+# TODO: EMAIL DEIXOU DE SER primary_key de acordo com cleber
+    email = Column(String(50),unique=True)
     nome = Column(String(100))
     senha = Column(String(200))
 

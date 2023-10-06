@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 from database.base import Base
 
 # Área: Esta tabela tem uma relação de um para muitos com a tabela Reserva. Cada área pode ter várias reservas. Além disso, tem uma relação de muitos para um com a tabela Usuário. Cada área está associada a um usuário.
+
+# FIXME: USUARIO NÃO DEVE TER USUARIO_ID EM AREAS (NÃO PODE HAVER ESSE RELACIONAMENTO..)
 class Area(Base):
     __tablename__ = "areas"
 
