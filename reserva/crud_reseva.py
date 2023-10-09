@@ -7,6 +7,12 @@ from reserva.reserva_schema import ReservationCreate
 def get_reservation_by_id(reservation_id: str, db: Session = Depends(get_db)):
     return db.query(Reservation).filter(Reservation.id == reservation_id).first()
 
+def get_reservations_by_user_id(user_id: str, db: Session = Depends(get_db)):
+    return db.query(Reservation).filter(Reservation.usuario_id == user_id).all()
+
+def get_available_reservations(db: Session = Depends(get_db)):
+    return db.query(Reservation).filter(Reservation.disponivel == True).all()
+
 def create_reservation(db: Session, reservation: ReservationCreate):
     db_reservation = Reservation(**reservation.model_dump())
     db.add(db_reservation)

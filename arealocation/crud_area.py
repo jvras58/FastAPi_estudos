@@ -7,6 +7,9 @@ from arealocation.area_schema import AreaCreate
 def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.id == area_id).first()
 
+def get_available_areas(db: Session = Depends(get_db)):
+    return db.query(Area).filter(Area.disponivel == True).all()
+
 def create_area(db: Session, area: AreaCreate):
     db_area = Area(**area.model_dump())
     db.add(db_area)
