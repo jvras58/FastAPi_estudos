@@ -140,3 +140,10 @@ def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
 @app.get('/usuario/reservas')
 def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
     return crud_reserva.get_reservations_by_user_id(current_user.id, db)
+
+@app.get('/usuario/reservas/{reservation_id}')
+def get_reserva_usuario(reservation_id: str, current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+    db_reservation = crud_reserva.get_reservation_by_id(reservation_id, db)
+    if db_reservation is None or db_reservation.usuario_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+    return db_reservation
