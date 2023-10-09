@@ -80,6 +80,34 @@ def delete(current_user = Depends(crud_user.get_current_user), db: Session = Dep
     crud_user.delete_user(db, current_user)
     return {"detail": "Usuário deletado com sucesso"}
 
+# ----------------------------------------- area -------------------------------------------------------#
+
+
+@app.post('/areas')
+def create_area(area: AreaCreate, db: Session = Depends(get_db)):
+    return crud_area.create_area(db=db, area=area)
+
+@app.get('/areas/disponiveis')
+def get_areas_disponiveis(db: Session = Depends(get_db)):
+    return crud_area.get_available_areas(db)
+
+# TODO: DEVE TER UM JEITO DE PEGAR O ID DA AREA JA DO BANCO QUE NEM O FAZEMOS NO ID DO USUARIO POR MEIO DO CURRENT_USER
+@app.get('/areas/{area_id}')
+def get_area(area_id: str, db: Session = Depends(get_db)):
+    db_area = crud_area.get_area_by_id(area_id, db)
+    if db_area is None:
+        raise HTTPException(status_code=404, detail="Area not found")
+    return db_area
+
+@app.put('/areas/{area_id}')
+def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
+    return crud_area.update_area(area_id, area, db)
+
+@app.delete('/areas/{area_id}')
+def delete_area(area_id: str, db: Session = Depends(get_db)):
+    crud_area.delete_area(area_id, db)
+    return {"detail": "Área deletada com sucesso"}
+
 # ----------------------------------------- reserva -------------------------------------------------------#
 
 @app.post('/reservas')
@@ -101,40 +129,14 @@ def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
 def update_reserva(reservation_id: str, reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.update_reservation(reservation_id, reserva, db)
 
+# TODO: DEVE TER UM JEITO DE PEGAR O ID DA RESERVA JA DO BANCO QUE NEM O FAZEMOS NO ID DO USUARIO POR MEIO DO CURRENT_USER
 @app.delete('/reservas/{reservation_id}')
 def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     crud_reserva.delete_reservation(reservation_id, db)
     return {"detail": "Reserva deletada com sucesso"}
 
-@app.get('/usuarios/{user_id}/reservas')
-def get_reservas_usuario(user_id: str, db: Session = Depends(get_db)):
-    return crud_reserva.get_reservations_by_user_id(user_id, db)
 
-
-# ----------------------------------------- area -------------------------------------------------------#
-
-@app.post('/areas')
-def create_area(area: AreaCreate, db: Session = Depends(get_db)):
-    return crud_area.create_area(db=db, area=area)
-
-@app.get('/areas/disponiveis')
-def get_areas_disponiveis(db: Session = Depends(get_db)):
-    return crud_area.get_available_areas(db)
-
-@app.get('/areas/{area_id}')
-def get_area(area_id: str, db: Session = Depends(get_db)):
-    db_area = crud_area.get_area_by_id(area_id, db)
-    if db_area is None:
-        raise HTTPException(status_code=404, detail="Area not found")
-    return db_area
-
-@app.put('/areas/{area_id}')
-def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
-    return crud_area.update_area(area_id, area, db)
-
-@app.delete('/areas/{area_id}')
-def delete_area(area_id: str, db: Session = Depends(get_db)):
-    crud_area.delete_area(area_id, db)
-    return {"detail": "Área deletada com sucesso"}
-
-
+# TODO: precisamos definir quais rotas são obritoriedade que o usuario tenha logado para melhorar a usabilidade essa rota por exemplo usa o current_user é recebe do banco o id de usuario
+@app.get('/usuario/reservas')
+def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+    return crud_reserva.get_reservations_by_user_id(current_user.id, db)

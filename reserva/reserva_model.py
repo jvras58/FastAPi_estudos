@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
-from sqlalchemy import Column,Integer, String,DateTime, ForeignKey
+from sqlalchemy import Column,Integer, String,DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database.base import Base
 
@@ -15,7 +15,10 @@ class Reservation(Base):
     hora_fim = Column(DateTime)
     justificacao = Column(String)
     reserva_tipo = Column(String)
+    #FIXME: IMPLEMENTAÇÃO DE TABELA DE STATUS DESCRIÇÃO ONDE CONTEM O STATUS DA DISPONIBILIDADE DA RESERVA
     status = Column(String)
+    # GAMBIARRA POR ENQUANTO PARA TER SO DOIS STATUS KK 
+    disponivel = Column(Boolean)
     area_id = Column(UUID, ForeignKey("areas.id"))
     usuario_id = Column(UUID, ForeignKey("usuario.id"))
 

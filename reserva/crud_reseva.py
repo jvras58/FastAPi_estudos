@@ -11,6 +11,8 @@ def get_reservations_by_user_id(user_id: str, db: Session = Depends(get_db)):
     return db.query(Reservation).filter(Reservation.usuario_id == user_id).all()
 
 def get_available_reservations(db: Session = Depends(get_db)):
+    #FIXME: IMPLEMENTAÇÃO DE TABELA DE STATUS DESCRIÇÃO ONDE CONTEM O STATUS DA DISPONIBILIDADE DA RESERVA
+    #return db.query(Reservation).filter(Reservation.status == '1').all()
     return db.query(Reservation).filter(Reservation.disponivel == True).all()
 
 def create_reservation(db: Session, reservation: ReservationCreate):
