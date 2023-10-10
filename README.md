@@ -8,15 +8,7 @@ docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgr
   alembic upgrade head
 ```
 
-# para criar uma nova migração no alembic:
-
-```
-  alembic revision --autogenerate -m "descrição_significativa"
-```
-
-Gera automaticamente uma nova revisão/migração baseada nas diferenças detectadas entre o estado atual do banco de dados e os modelos declarativos(model).
-
-# Etapas para testar algumas rota usando o swegger do fastapi:
+# Etapas para testar algumas rota usando o swegger do fastapi (localhost: http://127.0.0.1:8000/docs ):
 
 1. **Rota POST /usuarios para criar um usuário**:
 
@@ -116,3 +108,12 @@ Gera automaticamente uma nova revisão/migração baseada nas diferenças detect
     - DELETE.
     - substituindo `{reservation_id}` pelo ID da reserva que você criou: `http://localhost:8000/reservas/323e4567-e89b-12d3-a456-426614174000`
     - Clique em "execute" para enviar a solicitação.
+
+
+# para qualquer alteração dos modelos de user/reserva/area é necessario criar uma nova migração no alembic:
+
+```
+  alembic revision --autogenerate -m "descrição_significativa"
+```
+
+ - Gera automaticamente uma nova revisão/migração baseada nas diferenças detectadas entre o estado atual do banco de dados e os modelos declarativos(model).
