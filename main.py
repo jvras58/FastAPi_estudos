@@ -114,6 +114,7 @@ def delete_area(area_id: str, db: Session = Depends(get_db)):
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.create_reservation(db=db, reservation=reserva)
 
+# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE NÃO ESTA MOSTRANDO AS AREAS DISPONIVEIS....
 @app.get('/reservas/disponiveis')
 def get_reservas_disponiveis(db: Session = Depends(get_db)):
     return crud_reserva.get_available_reservations(db)
