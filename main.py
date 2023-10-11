@@ -89,8 +89,6 @@ def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     return crud_area.create_area(db=db, area=area)
 
 
-# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE QUANDO UMA AREA(OU TODAS AS AREAS) É RESERVADA É NECESSARIO QUE MOSTRE QUE NÃO TENHA AREAS DISPONIVEIS ....
-
 # CENARIO: segel consegue ver as areas(quadras) que estão sendo ofertadas isso o cliente tbm consegue ver 
 @app.get('/areas/disponiveis')
 def get_areas_disponiveis(db: Session = Depends(get_db)):
@@ -116,13 +114,12 @@ def delete_area(area_id: str, db: Session = Depends(get_db)):
     return {"detail": "Área deletada com sucesso"}
 
 # ----------------------------------------- reserva -------------------------------------------------------#
-# CENARIO: USUARIO CLIENTE CRIA UMA RESERVA 
+# CENARIO: USUARIO CLIENTE CRIA UMA RESERVA
+# TODO: BUG CORRIGIDO COM GAMBIARRA Wip: rotas corrigidas porém BUG NO JSON DO CREATE_RESERVATION foi identificado
 @app.post('/reservas')
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.create_reservation(db=db, reservation=reserva)
 
-# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE NÃO ESTA MOSTRANDO AS RESERVAS DISPONIVEIS TIPO QUANDO EU FAÇO UMA RESERVA TEORICAMENTE (NO NOSSO CASO DE TESTE QUE SO EXISTE UMA AREA(QUADRA) ERA PARA ELE MOSTRAR NENHUMA RESERVA DISPONIVEL QUE TEORICAMENTE SERIA O CORRETO KK MAS NO CASO ELE TA MOSTRANDO PRA TUDE)....
-# TODO: ESSA ROTA DEVE SER DINAMICA QUANDO NÃO TIVER NENHUMA RESERVA DISPONIVEL PARA SER FEITA MOSTRAR NENHUMA RESERVA DISPONIVEL (CLARO QUE ESSA ROTA DEPENDE DA ROTA DE AREA(QUADRAS) QUANTAS AREAS TEM DISPONIVEIS É AFINS.....
 
 # CENARIO: USUARIO CONSEGUE VER AS RESERVAS DISPONIVEIS FEITAS POR ELE OU POSSIVEIS DE FAZER POR ELE
 @app.get('/reservas/disponiveis')

@@ -151,4 +151,4 @@ docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgr
 
 
  # Erros detectados nas rotas:
-  - 1 rota de reservas disponiveis quando uma reserva é feita e deletada a reservas disponiveis não fica disponivel mas tipo deveria ficar quando um usuario deletar a reserva por que desistiu a reserva deveria ficar automaticamente disponvivel novamente [ @app.get('/reservas/disponiveis')]
+  - Wip: rotas corrigidas porém BUG NO JSON DO CREATE_RESERVATION foi identificado FOI CORRIGIDO COM UMA GAMBIARRINHA NADA DMS DEPOIS RESOLVEMO RS

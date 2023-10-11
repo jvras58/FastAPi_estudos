@@ -7,7 +7,7 @@ from area.area_schema import AreaCreate
 def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.id == area_id).first()
 
-#FIXME: reta não esta retornando as areas disponiveis
+
 def get_available_areas(db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.disponivel == True).all()
 
