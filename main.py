@@ -12,8 +12,8 @@ import user.crud_user as crud_user
 from reserva.reserva_schema import ReservationCreate
 import reserva.crud_reseva as crud_reserva
 # areas
-from arealocation.area_schema import AreaCreate
-import arealocation.crud_area as crud_area
+from area.area_schema import AreaCreate
+import area.crud_area as crud_area
 
 from datetime import timedelta
 from security.auth import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate, create_access_token, verify_password
@@ -82,17 +82,21 @@ def delete(current_user = Depends(crud_user.get_current_user), db: Session = Dep
 
 # ----------------------------------------- area -------------------------------------------------------#
 
-# TODO: CORREÇÃO PARA QUANDO CRIARMOS UMA AREA QUE JA EXISTE LANÇAR UM ERRO DE JA EXISTE
+
+# CENARIO: Segel entra como admiro do sistema é cria uma area(uma quadra disponivel para reserva... )
 @app.post('/areas')
 def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     return crud_area.create_area(db=db, area=area)
 
+
 # FIXME: ROTA SEM FUNCIONAR CORRETAMENTE QUANDO UMA AREA(OU TODAS AS AREAS) É RESERVADA É NECESSARIO QUE MOSTRE QUE NÃO TENHA AREAS DISPONIVEIS ....
+
+# CENARIO: segel consegue ver as areas(quadras) que estão sendo ofertadas isso o cliente tbm consegue ver 
 @app.get('/areas/disponiveis')
 def get_areas_disponiveis(db: Session = Depends(get_db)):
     return crud_area.get_available_areas(db)
 
-
+# CENARIO: usuario & segell consegue pegar informações sobre a area é feedbacks de quem ja utilizou a area (talvez)
 @app.get('/areas/{area_id}')
 def get_area(area_id: str, db: Session = Depends(get_db)):
     db_area = crud_area.get_area_by_id(area_id, db)
@@ -100,27 +104,32 @@ def get_area(area_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Area not found")
     return db_area
 
+# CENARIO: atualizar a area (somente a segeel pode fazer isso)
 @app.put('/areas/{area_id}')
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     return crud_area.update_area(area_id, area, db)
 
+#CENARIO: apagar area (somente a segeel pode fazer isso)
 @app.delete('/areas/{area_id}')
 def delete_area(area_id: str, db: Session = Depends(get_db)):
     crud_area.delete_area(area_id, db)
     return {"detail": "Área deletada com sucesso"}
 
 # ----------------------------------------- reserva -------------------------------------------------------#
-
+# CENARIO: USUARIO CLIENTE CRIA UMA RESERVA 
 @app.post('/reservas')
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.create_reservation(db=db, reservation=reserva)
 
 # FIXME: ROTA SEM FUNCIONAR CORRETAMENTE NÃO ESTA MOSTRANDO AS RESERVAS DISPONIVEIS TIPO QUANDO EU FAÇO UMA RESERVA TEORICAMENTE (NO NOSSO CASO DE TESTE QUE SO EXISTE UMA AREA(QUADRA) ERA PARA ELE MOSTRAR NENHUMA RESERVA DISPONIVEL QUE TEORICAMENTE SERIA O CORRETO KK MAS NO CASO ELE TA MOSTRANDO PRA TUDE)....
 # TODO: ESSA ROTA DEVE SER DINAMICA QUANDO NÃO TIVER NENHUMA RESERVA DISPONIVEL PARA SER FEITA MOSTRAR NENHUMA RESERVA DISPONIVEL (CLARO QUE ESSA ROTA DEPENDE DA ROTA DE AREA(QUADRAS) QUANTAS AREAS TEM DISPONIVEIS É AFINS.....
+
+# CENARIO: USUARIO CONSEGUE VER AS RESERVAS DISPONIVEIS FEITAS POR ELE OU POSSIVEIS DE FAZER POR ELE
 @app.get('/reservas/disponiveis')
 def get_reservas_disponiveis(db: Session = Depends(get_db)):
     return crud_reserva.get_available_reservations(db)
 
+# CENARIO: VER AS RESERVAS (ACHO QUE É REDUDANTE)
 @app.get('/reservas/{reservation_id}')
 def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
     db_reservation = crud_reserva.get_reservation_by_id(reservation_id, db)
@@ -128,21 +137,23 @@ def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Reservation not found")
     return db_reservation
 
+# CENARIO: ATUALIZAR A RESERVA (CUIDADO COM ESSE CENARIO PQ TIPO PODE HAVER CONFUSÃO UM USUARIO PODERIA AUMENTAR A RESERVA POR MOTIVOS NENHUM É ACABAR PREJUDICANDO OUTRA RESERVA JÁ QUE PODE SER POR HORARIOS)
 @app.put('/reservas/{reservation_id}')
 def update_reserva(reservation_id: str, reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.update_reservation(reservation_id, reserva, db)
 
-
+# CENARIO: DELETAR RESERVA TANTO A SEGELL QUANTO O USUARIO PODERIA FAZER ISSO...
 @app.delete('/reservas/{reservation_id}')
 def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     crud_reserva.delete_reservation(reservation_id, db)
     return {"detail": "Reserva deletada com sucesso"}
 
-
+# CENARIO: TELA DO USUARIO COM SUAS RESERVAS
 @app.get('/usuario/reservas')
 def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
     return crud_reserva.get_reservations_by_user_id(current_user.id, db)
 
+# CENARIO: RESERVAS FEITAS NAQUELE ID DE RESERVA
 @app.get('/usuario/reservas/{reservation_id}')
 def get_reserva_usuario(reservation_id: str, current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
     db_reservation = crud_reserva.get_reservation_by_id(reservation_id, db)

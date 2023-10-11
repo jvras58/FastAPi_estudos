@@ -1,16 +1,17 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database.get_db import SessionLocal, get_db
-from arealocation.area_model import Area
-from arealocation.area_schema import AreaCreate
+from area.area_model import Area
+from area.area_schema import AreaCreate
 
 def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.id == area_id).first()
 
+#FIXME: reta não esta retornando as areas disponiveis
 def get_available_areas(db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.disponivel == True).all()
 
-# TODO: CORREÇÃO PARA QUANDO CRIARMOS UMA AREA QUE JA EXISTE LANÇAR UM ERRO DE JA EXISTE
+
 def create_area(db: Session, area: AreaCreate):
     db_area = db.query(Area).filter(Area.nome == area.nome).first()
     if db_area:
