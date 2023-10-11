@@ -10,12 +10,17 @@ def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
 def get_available_areas(db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.disponivel == True).all()
 
+# TODO: CORREÇÃO PARA QUANDO CRIARMOS UMA AREA QUE JA EXISTE LANÇAR UM ERRO DE JA EXISTE
 def create_area(db: Session, area: AreaCreate):
+    db_area = db.query(Area).filter(Area.nome == area.nome).first()
+    if db_area:
+        raise HTTPException(status_code=400, detail="Area already exists")
     db_area = Area(**area.model_dump())
     db.add(db_area)
     db.commit()
     db.refresh(db_area)
     return db_area
+
 
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     db_area = get_area_by_id(area_id, db)

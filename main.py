@@ -82,16 +82,17 @@ def delete(current_user = Depends(crud_user.get_current_user), db: Session = Dep
 
 # ----------------------------------------- area -------------------------------------------------------#
 
-
+# TODO: CORREÇÃO PARA QUANDO CRIARMOS UMA AREA QUE JA EXISTE LANÇAR UM ERRO DE JA EXISTE
 @app.post('/areas')
 def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     return crud_area.create_area(db=db, area=area)
 
+# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE QUANDO UMA AREA(OU TODAS AS AREAS) É RESERVADA É NECESSARIO QUE MOSTRE QUE NÃO TENHA AREAS DISPONIVEIS ....
 @app.get('/areas/disponiveis')
 def get_areas_disponiveis(db: Session = Depends(get_db)):
     return crud_area.get_available_areas(db)
 
-# TODO: DEVE TER UM JEITO DE PEGAR O ID DA AREA JA DO BANCO QUE NEM O FAZEMOS NO ID DO USUARIO POR MEIO DO CURRENT_USER
+
 @app.get('/areas/{area_id}')
 def get_area(area_id: str, db: Session = Depends(get_db)):
     db_area = crud_area.get_area_by_id(area_id, db)
@@ -114,7 +115,8 @@ def delete_area(area_id: str, db: Session = Depends(get_db)):
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.create_reservation(db=db, reservation=reserva)
 
-# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE NÃO ESTA MOSTRANDO AS AREAS DISPONIVEIS....
+# FIXME: ROTA SEM FUNCIONAR CORRETAMENTE NÃO ESTA MOSTRANDO AS RESERVAS DISPONIVEIS TIPO QUANDO EU FAÇO UMA RESERVA TEORICAMENTE (NO NOSSO CASO DE TESTE QUE SO EXISTE UMA AREA(QUADRA) ERA PARA ELE MOSTRAR NENHUMA RESERVA DISPONIVEL QUE TEORICAMENTE SERIA O CORRETO KK MAS NO CASO ELE TA MOSTRANDO PRA TUDE)....
+# TODO: ESSA ROTA DEVE SER DINAMICA QUANDO NÃO TIVER NENHUMA RESERVA DISPONIVEL PARA SER FEITA MOSTRAR NENHUMA RESERVA DISPONIVEL (CLARO QUE ESSA ROTA DEPENDE DA ROTA DE AREA(QUADRAS) QUANTAS AREAS TEM DISPONIVEIS É AFINS.....
 @app.get('/reservas/disponiveis')
 def get_reservas_disponiveis(db: Session = Depends(get_db)):
     return crud_reserva.get_available_reservations(db)
@@ -130,14 +132,13 @@ def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
 def update_reserva(reservation_id: str, reserva: ReservationCreate, db: Session = Depends(get_db)):
     return crud_reserva.update_reservation(reservation_id, reserva, db)
 
-# TODO: DEVE TER UM JEITO DE PEGAR O ID DA RESERVA JA DO BANCO QUE NEM O FAZEMOS NO ID DO USUARIO POR MEIO DO CURRENT_USER
+
 @app.delete('/reservas/{reservation_id}')
 def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     crud_reserva.delete_reservation(reservation_id, db)
     return {"detail": "Reserva deletada com sucesso"}
 
 
-# TODO: precisamos definir quais rotas são obritoriedade que o usuario tenha logado para melhorar a usabilidade essa rota por exemplo usa o current_user é recebe do banco o id de usuario
 @app.get('/usuario/reservas')
 def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
     return crud_reserva.get_reservations_by_user_id(current_user.id, db)
