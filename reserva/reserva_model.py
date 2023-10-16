@@ -15,9 +15,9 @@ class Reservation(Base):
     hora_fim = Column(DateTime)
     justificacao = Column(String)
     reserva_tipo = Column(String)
-    #FIXME: IMPLEMENTAÇÃO DE TABELA DE STATUS DESCRIÇÃO ONDE CONTEM O STATUS DA DISPONIBILIDADE DA RESERVA
+    #WiP: status do pedido de reserva 
     status = Column(String)
-    # GAMBIARRA POR ENQUANTO PARA TER SO DOIS STATUS KK 
+    # disponibilidade da reserva talvez não seja mais necessario o que define a disponibilidade de uma reserva (a area esta disponivel, a area foi reservada, entre outros isso so a regra de negocio podera me fornecer)....
     disponivel = Column(Boolean)
     area_id = Column(UUID, ForeignKey("areas.id"))
     usuario_id = Column(UUID, ForeignKey("usuario.id"))

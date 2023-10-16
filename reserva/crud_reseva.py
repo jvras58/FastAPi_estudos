@@ -46,6 +46,7 @@ def get_available_reservations(db: Session = Depends(get_db)):
     return db.query(Reservation).filter(Reservation.disponivel == True).all()
 
 
+# TODO: CORREÇÃO DE CONDIÇÃO PARA CRIAÇÃO DE RESERVA PARA DEFINIR SE É DISPONIVEL OU NÃO POR HORARIO
 def create_reservation(db: Session, reservation: ReservationCreate):
     """
     Cria uma nova reserva no banco de dados.
@@ -57,26 +58,39 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     Returns:
         Reservation: A reserva criada.
     """
+    # Antes de criar a reserva obtenha o id da área associada
+    area_id = reservation.area_id
+
+    # Verificar se há conflito de horários
+    inicio = reservation.hora_inicio
+    fim = reservation.hora_fim
+
+    reservas_conflito = db.query(Reservation).filter(
+        Reservation.area_id == area_id,
+        Reservation.reserva_data == reservation.reserva_data,
+        Reservation.hora_inicio < fim,
+        Reservation.hora_fim > inicio
+    ).all()
+
+    if reservas_conflito:
+        return None
+
     db_reservation = Reservation(**reservation.model_dump())
     db.add(db_reservation)
     db.commit()
     db.refresh(db_reservation)
 
-    # Antes de criar a reserva obtenha o id da área associada
-    area_id = reservation.area_id
-    db_area = db.query(Area).filter(Area.id == area_id).first()
-    
-    # apos a reserva ser criada atualiza a disponibilidade da area associada
-    if db_area:
-        db_area.disponivel = False 
-    # FIXME: se comentar o db.commit corrige o problema? mas qual problema isso me causaria kkk isso não serve pra enviar as coisas pro banco?? so deus sabe kk (vou deixar com o print por enquanto)
-        db.commit()
-    # FIXME: BUG NO JSON DO CREATE_RESERVATION MAS QUE  BUG É ESSE?? ELE PRECISA DOS PRINTS PRA ME RETORNAR O db_reservation no body do swagger ?? QUE SEM SENTIDO KKK (consegui reduzir a quantidade de print para um print só kk)
 
-        print(db_reservation.id)
-
+    # eu realmente não sei se é necessario ou não manter essa atualização nas tabelas pára verificar se a area esta disponivel de acordo com jova não é,,,,
     
+    # # Após a reserva ser criada, atualiza a disponibilidade da área associada
+    # db_area = db.query(Area).filter(Area.id == area_id).first()
+    # if db_area:
+    #     db_area.disponivel = False 
+    #     db.commit()
+
     return db_reservation
+
     
 
 def update_reservation(reservation_id: str, reservation: ReservationCreate, db: Session = Depends(get_db)):

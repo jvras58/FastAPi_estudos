@@ -217,7 +217,7 @@ def delete_area(area_id: str, db: Session = Depends(get_db)):
 
 # ----------------------------------------- reserva -------------------------------------------------------#
 # CENARIO: USUARIO CLIENTE CRIA UMA RESERVA
-# TODO: BUG CORRIGIDO COM GAMBIARRA Wip: rotas corrigidas porém BUG NO JSON DO CREATE_RESERVATION foi identificado
+# TODO: CORREÇÃO DE CONDIÇÃO PARA CRIAÇÃO DE RESERVA PARA DEFINIR SE É DISPONIVEL OU NÃO POR HORARIO
 @app.post('/reservas')
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     """
@@ -230,7 +230,10 @@ def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     Returns:
         Reservation: A reserva criada.
     """
-    return crud_reserva.create_reservation(db=db, reservation=reserva)
+    response = crud_reserva.create_reservation(db=db, reservation=reserva)
+    if response is None:
+        raise HTTPException(status_code=400, detail="Horário indiponível para essa Área")
+    return response
 
 
 # CENARIO: USUARIO CONSEGUE VER AS RESERVAS DISPONIVEIS FEITAS POR ELE OU POSSIVEIS DE FAZER POR ELE
