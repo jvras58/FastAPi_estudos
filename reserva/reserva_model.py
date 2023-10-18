@@ -4,7 +4,7 @@ from sqlalchemy import Column,Integer, String,DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database.base import Base
 
-# Reserva: Esta tabela tem uma relação de muitos para um com as tabelas Usuário e Área. Cada reserva está associada a um usuário e uma área.
+
 class Reservation(Base):
     __tablename__ = "reservations"
 
@@ -15,10 +15,10 @@ class Reservation(Base):
     hora_fim = Column(DateTime)
     justificacao = Column(String)
     reserva_tipo = Column(String)
-    #WiP: status do pedido de reserva 
     status = Column(String)
     # disponibilidade da reserva talvez não seja mais necessario o que define a disponibilidade de uma reserva (a area esta disponivel, a area foi reservada, entre outros isso so a regra de negocio podera me fornecer)....
     disponivel = Column(Boolean)
+    
     area_id = Column(UUID, ForeignKey("areas.id"))
     usuario_id = Column(UUID, ForeignKey("usuario.id"))
 

@@ -1,13 +1,24 @@
-# Para subir a imagem do banco:
-
+# Para subir a imagem do banco com o docker(puramente):
+```
 docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest
+```
 
-# para aplicar as migrações ja feitas no alembic:
+# Para subir a imagem do banco com o docker mais utilizando task do poetry(não esta funcionando ainda):
+
+```
+task subirdocker
+```
+
+# Para aplicar as migrações ja feitas no alembic:
 
 ```
   alembic upgrade head
 ```
 
+# Para iniciar o servidor 
+```
+uvicorn main:app --reload  
+```
 # Etapas para testar algumas rota usando o swegger do fastapi (localhost: http://127.0.0.1:8000/docs ):
 
 1. **Rota POST /usuarios para criar um usuário**:
