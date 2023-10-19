@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column,String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, ForeignKey
 from database.base import Base
 
 
@@ -12,5 +12,8 @@ class Usuario(Base):
     nome = Column(String(100))
     senha = Column(String(200))
 
+    tipo_id = Column(UUID, ForeignKey('tipouser.id')) 
+     
+    tipo = relationship("TipoUser", back_populates="usuarios") 
     reservations = relationship("Reservation", back_populates="usuario")
-
+    areas = relationship("Area", back_populates="usuario")

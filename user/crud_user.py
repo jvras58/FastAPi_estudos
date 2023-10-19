@@ -1,7 +1,9 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
+from area.area_model import Area
 from database.get_db import SessionLocal, get_db
+from reserva.reserva_model import Reservation
 from user.user_model import Usuario
 from user.user_schemas import UsuarioCreate
 import security.auth as auth
@@ -25,6 +27,23 @@ def get_user_by_email(email_user: str, db: SessionLocal = Depends(get_db)):
         Usuario: O usuário correspondente ao endereço de e-mail, ou None se não for encontrado.
     """
     return db.query(Usuario).filter(Usuario.email == email_user).first()
+
+# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    """
+    Obtém um usuário pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+
+    Raises:
+        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
+    """
+    return db.query(Usuario).filter(Usuario.id == user_id).first()
 
 def create_user(db: Session, user: UsuarioCreate):
     """
@@ -76,3 +95,64 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
     if user is None:
         raise credentials_exception
     return user
+
+# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+def get_account_by_id(db: Session, user_id: str):
+    """
+    Obtém uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID da conta.
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+    """
+    return db.query(Usuario).filter(Usuario.id == user_id).first()
+
+def get_user_by_id(db: Session, id: str):
+    """
+    Obtém um usuário pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        id (str): ID do usuário.
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+
+    Raises:
+        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado ou não for do tipo "0".
+    """
+    user = db.query(Usuario).filter(Usuario.id == id).first()
+    if not user or user.tipo != 0:
+        raise HTTPException(status_code=404, detail="User not found or invalid type")
+    return user
+
+# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+def get_user_reservations(db: Session, user_id: str):
+    """
+    Obtém o número de reservas associadas a uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário.
+
+    Returns:
+        int: O número de reservas associadas à conta.
+    """
+    return db.query(Reservation).filter(Reservation.usuario_id == user_id).count()
+
+# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+def get_account_areas(db: Session, user_id: str):
+    """
+    Obtém o número de áreas associadas a uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário.
+
+    Returns:
+        int: O número de áreas associadas à conta.
+    """
+    return db.query(Area).filter(Area.usuario_id == user_id).count()

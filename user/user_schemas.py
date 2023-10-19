@@ -4,6 +4,7 @@ from typing import Annotated
 class UsuarioBase(BaseModel):
     id  : str
     nome: str
+    tipo_id: str
     email: str
     senha: str
     
