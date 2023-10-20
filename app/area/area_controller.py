@@ -25,6 +25,36 @@ def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     """  
     return crud_area.create_area(db=db, area=area)
 
+@router.get('/areas')
+def get_all_areas(db: Session = Depends(get_db)):
+    """
+    Visualiza todas as areas.
+
+    Args:
+        
+        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+
+    Returns:
+        Areas: Todas as areas.
+    """  
+    return crud_area.get_all(db)
+
+@router.get('/areas/nome/{nome}')
+def get_area_by_name(nome: str, db: Session = Depends(get_db)):
+    """
+    Visualiza a area pelo nome.
+
+    Args:
+        nome (str): Os detalhes da nova área.
+        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+
+    Returns:
+        Area:  A área encontrada com o nome correspondente, ou None se não for encontrada.
+    """  
+    db_area = crud_area.get_area_by_name(nome, db)
+    if db_area is None:
+        raise HTTPException(status_code=404, detail="Area not found")
+    return db_area
 
 
 @router.get('/areas/disponiveis')

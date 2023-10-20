@@ -9,7 +9,7 @@ import app.usuario.crud_usuario as crud_usuario
 
 # reservas
 from app.reserva.reserva_schema import ReservationCreate
-import app.reserva.crud_reseva as crud_reserva
+import app.reserva.crud_reserva as crud_reserva
 
 router = APIRouter()
 
@@ -25,10 +25,26 @@ def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     Returns:
         Reservation: A reserva criada.
     """
+    #return crud_reserva.create_reservation(db=db, reservation=reserva)
     response = crud_reserva.create_reservation(db=db, reservation=reserva)
     if response is None:
         raise HTTPException(status_code=400, detail="Horário indiponível para essa Área")
     return response
+
+
+@router.get('/reservas')
+def get_all_reservas(db: Session = Depends(get_db)):
+    """
+    Visualiza todas as reservas.
+
+    Args:
+        
+        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+
+    Returns:
+        Reservas: Todas as reservas.
+    """  
+    return crud_reserva.get_all(db)
 
 
 
