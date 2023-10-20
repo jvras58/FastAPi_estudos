@@ -30,9 +30,9 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 # ---------------- LOADING Models -------------------------#
-from user.user_model import Base
-from area.area_model import Base
-from reserva.reserva_model import Base
+from app.usuario.usuario_model import Base
+from app.area.area_model import Base
+from app.reserva.reserva_model import Base
 
 
 

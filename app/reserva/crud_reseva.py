@@ -1,11 +1,11 @@
 import uuid
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from area.crud_area import get_area_by_id
+from app.area.crud_area import get_area_by_id
 from database.get_db import SessionLocal, get_db
-from reserva.reserva_model import Reservation
-from reserva.reserva_schema import ReservationCreate
-from user.crud_user import get_user_by_id
+from app.reserva.reserva_model import Reservation
+from app.reserva.reserva_schema import ReservationCreate
+from app.usuario.crud_usuario import get_user_by_id
 
 
 

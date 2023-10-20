@@ -1,12 +1,12 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from area.area_model import Area
+from app.area.area_model import Area
 from database.get_db import SessionLocal, get_db
-from reserva.reserva_model import Reservation
-from user.user_model import Usuario
-from user.user_schemas import UsuarioCreate
-import security.auth as auth
+from app.reserva.reserva_model import Reservation
+from app.usuario.usuario_model import Usuario
+from app.usuario.usuario_schemas import UsuarioCreate
+import app.security.auth as auth
 from typing import Annotated
 from jose import JWTError, jwt
 

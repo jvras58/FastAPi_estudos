@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 #usuario
-from user.user_controller import router as user_control
+from app.usuario.usuario_controller import router as user_control
 # reservas
-from reserva.reserva_controller import router as reserva_control
+from app.reserva.reserva_controller import router as reserva_control
 # areas
-from area.area_controller import router as area_control
+from app.area.area_controller import router as area_control
 
 
-# uvicorn main:app --reload  <-- inicia o servidor
+# uvicorn app.main:app --reload  <-- inicia o servidor
 
 app = FastAPI()
 

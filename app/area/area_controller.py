@@ -4,8 +4,8 @@ from database.get_db import get_db
 from fastapi import APIRouter
 
 # areas
-from area.area_schema import AreaCreate
-import area.crud_area as crud_area
+from app.area.area_schema import AreaCreate
+import app.area.crud_area as crud_area
 
 router = APIRouter()
 

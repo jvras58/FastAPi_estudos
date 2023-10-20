@@ -1,9 +1,9 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database.get_db import SessionLocal, get_db
-from area.area_model import Area
-from area.area_schema import AreaCreate
-from user.user_model import Usuario
+from app.area.area_model import Area
+from app.area.area_schema import AreaCreate
+from app.usuario.usuario_model import Usuario
 
 # TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE  
 def get_area_by_name(nome: str, db: Session = Depends(get_db)):

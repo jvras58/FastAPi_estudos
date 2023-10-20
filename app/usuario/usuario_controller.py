@@ -4,16 +4,16 @@ from sqlalchemy.orm import Session
 from typing import Annotated, Type
 from database.get_db import get_db
 from datetime import timedelta
-from security.auth import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate, create_access_token, verify_password
+from app.security.auth import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate, create_access_token, verify_password
 from fastapi import APIRouter
 
 #user 
-from user.user_schemas import UsuarioCreate, Token
-import user.crud_user as crud_user
+from app.usuario.usuario_schemas import UsuarioCreate, Token
+import app.usuario.crud_usuario as crud_usuario
 
 router = APIRouter()
 
-@router.get('/usuarios')
+@router.post('/usuarios')
 def create_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     """
     Cria um novo usuário no sistema.
@@ -28,10 +28,10 @@ def create_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     Raises:
         HTTPException(400): Se o email já estiver registrado no sistema.
     """
-    db_user = crud_user.get_user_by_email(db = db, email_user=usuario.email)
+    db_user = crud_usuario.get_user_by_email(db = db, email_user=usuario.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud_user.create_user(db=db, user=usuario)
+    return crud_usuario.create_user(db=db, user=usuario)
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -65,7 +65,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.put("/usuario/update_senha")
-def update_senha(new_password: str, old_password: str, current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+def update_senha(new_password: str, old_password: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Atualiza a senha do usuário.
 
@@ -88,11 +88,11 @@ def update_senha(new_password: str, old_password: str, current_user: Type = Depe
     if not new_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Nova senha não pode ser vazia")
-    crud_user.update_user_password(db, current_user, new_password)
+    crud_usuario.update_user_password(db, current_user, new_password)
     return {"detail": "Senha atualizada com sucesso"}
 
 @router.delete("/usuario/delete")
-def delete(current_user = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+def delete(current_user = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Deleta o usuário atualmente autenticado.
 
@@ -103,5 +103,5 @@ def delete(current_user = Depends(crud_user.get_current_user), db: Session = Dep
     Returns:
         dict: Um dicionário indicando que o usuário foi deletado com sucesso.
     """
-    crud_user.delete_user(db, current_user)
+    crud_usuario.delete_user(db, current_user)
     return {"detail": "Usuário deletado com sucesso"}

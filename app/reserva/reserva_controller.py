@@ -5,11 +5,11 @@ from fastapi import APIRouter
 from typing import Type
 
 #user
-import user.crud_user as crud_user
+import app.usuario.crud_usuario as crud_usuario
 
 # reservas
-from reserva.reserva_schema import ReservationCreate
-import reserva.crud_reseva as crud_reserva
+from app.reserva.reserva_schema import ReservationCreate
+import app.reserva.crud_reseva as crud_reserva
 
 router = APIRouter()
 
@@ -94,7 +94,7 @@ def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     return {"detail": "Reserva deletada com sucesso"}
 
 @router.get('/usuario/reservas')
-def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+def get_reservas_usuario(current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Obtém as reservas associadas ao usuário atualmente autenticado.
 
@@ -108,7 +108,7 @@ def get_reservas_usuario(current_user: Type = Depends(crud_user.get_current_user
     return crud_reserva.get_reservations_by_user_id(current_user.id, db)
 
 @router.get('/usuario/reservas/{reservation_id}')
-def get_reserva_usuario(reservation_id: str, current_user: Type = Depends(crud_user.get_current_user), db: Session = Depends(get_db)):
+def get_reserva_usuario(reservation_id: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Obtém uma reserva específica associada ao usuário atualmente autenticado.
 
