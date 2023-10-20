@@ -153,5 +153,4 @@ uvicorn main:app --reload
 
 # Erros detectados:
 
-- Wip: quando tento alembic revision --autogenerate -m ""
-  Foreign key associated with column 'usuario.tipo_id' could not find table 'tipouser' with which to generate a foreign key to target column 'id
+- 
