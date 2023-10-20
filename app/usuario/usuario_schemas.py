@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Annotated
 
 class UsuarioBase(BaseModel):
+    id  : str
     nome: str
     email: str
     senha: str

@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session, joinedload
 from database.get_db import SessionLocal, get_db
-from database.models import Usuario
-from database.schemas import UsuarioCreate
-import auth
+from app.usuario.usuario_model import Usuario
+from app.usuario.usuario_schemas import UsuarioCreate
+import app.security.auth as auth
 from typing import Annotated
 from jose import JWTError, jwt
 
@@ -14,9 +14,29 @@ ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 def get_user_by_email(email_user: str, db: SessionLocal = Depends(get_db)):
+    """
+    Obtém um usuário pelo endereço de e-mail.
+
+    Args:
+        email_user (str): O endereço de e-mail do usuário a ser obtido.
+        db (SessionLocal, optional): Uma sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        Usuario: O usuário correspondente ao endereço de e-mail, ou None se não for encontrado.
+    """
     return db.query(Usuario).filter(Usuario.email == email_user).first()
 
 def create_user(db: Session, user: UsuarioCreate):
+    """
+    Cria um novo usuário no banco de dados.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user (UsuarioCreate): Os dados do usuário a serem criados.
+
+    Returns:
+        Usuario: O usuário criado.
+    """
     db_user = Usuario(**user.model_dump())
     db_user.senha = auth.get_password_hash(db_user.senha)
     db.add(db_user)
@@ -25,6 +45,19 @@ def create_user(db: Session, user: UsuarioCreate):
     return db_user
     
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: SessionLocal = Depends(get_db)):
+    """
+    Obtém o usuário atual a partir do token de autenticação.
+
+    Args:
+        token (str): Token de autenticação.
+        db (SessionLocal, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        Usuario: O usuário autenticado.
+        
+    Raises:
+        HTTPException: Exceção HTTP com código 401 se as credenciais não puderem ser validadas.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
