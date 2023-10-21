@@ -64,6 +64,86 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+# TODO: NOVAS ROTAS DE ACORDO COM AS MODIFICAÇÕES COM BASE NO PROJETO BASE
+#----------------------------Inicio------------------------------------------------------#
+@router.get('/usuarios/{user_id}')
+def get_user(user_id: str, db: Session = Depends(get_db)):
+    """ Obtém um usuário pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Raises:
+        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+    """
+    db_user = crud_usuario.get_user_by_id(user_id, db)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+@router.put('/usuarios/{user_id}')
+def update_user(user_id: str, usuario: UsuarioCreate, db: Session = Depends(get_db)):
+    """ Obtém um usuário pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        usuario (UsuarioCreate): Os dados do usuário a ser atualizado.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Raises:
+        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
+
+    Returns:
+        Usuario: O usuário com informações atualizadas.
+    """
+    return crud_usuario.update_user(user_id, usuario, db)
+
+@router.delete('/usuarios/{user_id}')
+def delete_user(user_id: str, db: Session = Depends(get_db)):
+    """ Obtém um usuário pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        dict: Um dicionário indicando que o usuário foi deletado com sucesso.
+    """
+    crud_usuario.delete_user(user_id, db)
+    return {"detail": "Usuário deletado com sucesso"}
+
+@router.get('/usuarios/{user_id}/reservas')
+def get_user_reservations(user_id: str, db: Session = Depends(get_db)):
+    """ Obtém o número de reservas associadas a uma conta pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        int: O número de reservas associadas à conta.
+    """  
+    return crud_usuario.get_user_reservations(user_id, db)
+
+@router.get('/usuarios/{user_id}/areas')
+def get_account_areas(user_id: str, db: Session = Depends(get_db)):
+    """
+    Obtém o número de áreas associadas a uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário.
+
+    Returns:
+        int: O número de áreas associadas à conta.
+    """
+    return crud_usuario.get_account_areas(user_id, db)
+#----------------------------fim------------------------------------------------------#
+
 @router.put("/usuario/update_senha")
 def update_senha(new_password: str, old_password: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """

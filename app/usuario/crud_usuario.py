@@ -28,7 +28,7 @@ def get_user_by_email(email_user: str, db: SessionLocal = Depends(get_db)):
     """
     return db.query(Usuario).filter(Usuario.email == email_user).first()
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+
 def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
     """
     Obtém um usuário pelo seu ID.
@@ -91,7 +91,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
         raise credentials_exception
 
     user = get_user_by_email(db = db, email_user = email)
-
     if user is None:
         raise credentials_exception
     return user
@@ -110,7 +109,8 @@ def get_account_by_id(db: Session, user_id: str):
     """
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
-def get_user_by_id(db: Session, id: str):
+# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+def get_user_id(db: Session, id: str):
     """
     Obtém um usuário pelo seu ID.
 
@@ -156,3 +156,51 @@ def get_account_areas(db: Session, user_id: str):
         int: O número de áreas associadas à conta.
     """
     return db.query(Area).filter(Area.usuario_id == user_id).count()
+
+# TODO: FUNCÕES QUE ESTAVAM OCIOSAS DESDE O COMEÇO(AINDA EM TESTE DO SEU PLENO FUNCIONAMENTO..)
+def update_user_password(db: Session, user: Usuario, new_password: str):
+    """
+    Atualiza a senha de um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user (Usuario): O usuário cuja senha será atualizada.
+        new_password (str): A nova senha do usuário.
+    """
+    user.senha = auth.get_password_hash(new_password)
+    db.commit()
+
+def delete_user(db: Session, user: Usuario):
+    """
+    Deleta um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user (Usuario): O usuário a ser deletado.
+    """
+    db.delete(user)
+    db.commit()
+    
+def update_user(db: Session, user_id: str, user_update: UsuarioCreate):
+    """
+    Atualiza os detalhes de um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário a ser atualizado.
+        user_update (UsuarioCreate): Os novos detalhes do usuário.
+
+    Returns:
+        Usuario: O usuário atualizado.
+    """
+    user = get_user_by_id(user_id, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for var, value in vars(user_update).items():
+        setattr(user, var, value) if value else None
+
+    db.commit()
+    db.refresh(user)
+
+    return user

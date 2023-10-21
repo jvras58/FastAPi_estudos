@@ -13,7 +13,7 @@ class Usuario(Base):
     senha = Column(String(200))
 
     tipo_id = Column(UUID, ForeignKey('tipouser.id')) 
-     
+    
     tipo = relationship("TipoUser", back_populates="usuarios") 
     reservations = relationship("Reservation", back_populates="usuario")
     areas = relationship("Area", back_populates="usuario")
