@@ -47,14 +47,8 @@ uvicorn app.main:app --reload
 <div style="color:Yellow;">
 <strong>Erros detectados:</strong> 
 
-- erro no create usuario expression 'TipoUser' failed to locate a name ('TipoUser').
+- erro no create usuario expression 'TipoUser' failed to locate a name ('TipoUser'). (corrigido colocando o models do tipo usuario dentro do models de usuario)
+![1698068918389](image/README/1698068918389.png)
 
-```
-  sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Usuario(usuario)]'. Original exception was: When initializing mapper Mapper[Usuario(usuario)], expression 'TipoUser' failed to locate a name ('TipoUser'). If this is a class name, consider adding this relationship() to the <class 'app.usuario.usuario_model.Usuario'> class after both dependent classes have been defined.
-```
 
-- o erro aparentimente é na modelagem e estrutura do banco ao qual ainda não sei o que esta acontecendo....
-- comentando o relacionamento de usuario é tipo usuario é deixando na tabela de usuario o tipo o codigo funciona normal (# FIXME: teste para verificar o que esta acontecendo entre os relacionamentos...)
-
-```
-
+- TipoUser faltando definir como vai ser gerado a identificação atualmente é necessario gerar na mão 
