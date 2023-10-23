@@ -35,17 +35,19 @@ def get_reservations_by_user_id(user_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Reservation).filter(Reservation.usuario_id == user_id).all()
 
-def get_available_reservations(db: Session = Depends(get_db)):
-    """
-    Obtém todas as reservas disponíveis no banco de dados.
+# CRUD DESATIVADO
+# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
+# def get_available_reservations(db: Session = Depends(get_db)):
+#     """
+#     Obtém todas as reservas disponíveis no banco de dados.
 
-    Args:
-        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+#     Args:
+#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
-    Returns:
-        List[Reservation]: Uma lista de reservas disponíveis, ou uma lista vazia se não houver nenhuma.
-    """
-    return db.query(Reservation).filter(Reservation.disponivel == True).all()
+#     Returns:
+#         List[Reservation]: Uma lista de reservas disponíveis, ou uma lista vazia se não houver nenhuma.
+#     """
+#     return db.query(Reservation).filter(Reservation.disponivel == True).all()
 
 # TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
 def create_reservation(db: Session, reservation: ReservationCreate):

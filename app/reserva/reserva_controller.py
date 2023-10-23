@@ -47,19 +47,20 @@ def get_all_reservas(db: Session = Depends(get_db)):
     return crud_reserva.get_all(db)
 
 
+# ROTA DESATIVADO
+# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
+# @router.get('/reservas/disponiveis')
+# def get_reservas_disponiveis(db: Session = Depends(get_db)):
+#     """
+#     Obter a lista de reservas disponíveis.
 
-@router.get('/reservas/disponiveis')
-def get_reservas_disponiveis(db: Session = Depends(get_db)):
-    """
-    Obter a lista de reservas disponíveis.
+#     Args:
+#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
-    Args:
-        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
-
-    Returns:
-        List[Reservation]: Uma lista de reservas disponíveis.
-    """
-    return crud_reserva.get_available_reservations(db)
+#     Returns:
+#         List[Reservation]: Uma lista de reservas disponíveis.
+#     """
+#     return crud_reserva.get_available_reservations(db)
 
 
 @router.get('/reservas/{reservation_id}')

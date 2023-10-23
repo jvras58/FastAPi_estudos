@@ -85,4 +85,4 @@ Deleta a área correspondente ao ID fornecido.
 
 1 - /areas/{area_id} [update] (# FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ...))
 
-2- /areas/disponiveis [get] (# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL... VERIFICAR OQ DA PRA FAZER COM ESSA ROTA)
+2- ROTA DESATIVADA: /areas/disponiveis [get] (# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL... não temos o que fazer com ela pq não tem nada parecido com algo que diga que está disponivel....)

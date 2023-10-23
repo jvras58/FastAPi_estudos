@@ -49,18 +49,19 @@ def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.id == area_id).first()
 
+# CRUD DESATIVADO
 # FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-def get_available_areas(db: Session = Depends(get_db)):
-    """
-    Obtém todas as áreas disponíveis.
+# def get_available_areas(db: Session = Depends(get_db)):
+#     """
+#     Obtém todas as áreas disponíveis.
 
-    Args:
-        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+#     Args:
+#         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
 
-    Returns:
-        List[Area]: Uma lista de todas as áreas disponíveis.
-    """
-    return db.query(Area).filter(Area.disponivel == True).all()
+#     Returns:
+#         List[Area]: Uma lista de todas as áreas disponíveis.
+#     """
+#     return db.query(Area).filter(Area.disponivel == True).all()
 
 def create_area(db: Session, area: AreaCreate):
     """
@@ -95,7 +96,7 @@ def create_area(db: Session, area: AreaCreate):
     db.refresh(db_area)
     return db_area
 
-
+# FIXME: ESSE CRUD NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     """
     Atualiza uma área existente.
@@ -114,8 +115,8 @@ def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     db_area = get_area_by_id(area_id, db)
     if not db_area:
         raise HTTPException(status_code=404, detail="Area not found")
-    for key, value in area.model_dump().items():
-        setattr(db_area, key, value)
+    update_data = area.model_dump()
+    db_area.__dict__.update(update_data)  # Atualiza os atributos com os dados de update_data que vem do schema de area
     db.commit()
     return db_area
 

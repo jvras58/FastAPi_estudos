@@ -12,7 +12,7 @@
 
 ```json
 {
-  "id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b",
+  "id": "c1f949f1-3d6d-4cb1-9b0d-905b57c5e60b",
   "tipo": "administrador"
 }
 ```
