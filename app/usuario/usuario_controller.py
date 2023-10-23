@@ -13,6 +13,7 @@ import app.usuario.crud_usuario as crud_usuario
 
 router = APIRouter()
 
+# FIXME: ERRO expression 'TipoUser' failed to locate a name ('TipoUser'). NÃO ESTOU ENTENDENDO O PORQUE 
 @router.post('/usuarios')
 def create_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     """

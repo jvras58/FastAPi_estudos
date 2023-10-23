@@ -3,7 +3,7 @@
 
 # Testando as Rotas no Swagger - Reserva 
 
-
+# garanta que ja tenha uma area criada é se possivel use o mesmo id [ 0e398c13-163c-4939-a68b-39b21e10c2c7 ]
 
 ### 1. Criar uma Nova Reserva
 Cria uma nova reserva com os detalhes fornecidos.

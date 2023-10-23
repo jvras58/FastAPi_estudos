@@ -31,6 +31,7 @@ if config.config_file_name is not None:
 
 # ---------------- LOADING Models -------------------------#
 from app.usuario.usuario_model import Base
+# FIXME: teste para verificar o que esta acontecendo entre os relacionamentos...
 from app.usuario.tipo_usuario_model import Base
 from app.area.area_model import Base
 from app.reserva.reserva_model import Base

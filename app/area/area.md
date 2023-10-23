@@ -3,7 +3,7 @@
 
 # Testando as Rotas no Swagger - Reserva
 
-
+# garanta que ja tenha um usuario criado é se possivel use o mesmo id [ ff3be86a-5c09-4a02-a18f-94ab28e2c91b ]
 
 
 ### 1. Criar uma Nova Área

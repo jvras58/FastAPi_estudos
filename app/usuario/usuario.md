@@ -16,6 +16,7 @@
 {
   "id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b",
   "nome": "Jonh test",
+  // "tipo": "0", /* por algum motivo estou tendo erro em usar o tipo_id é a forma de passar pelo erro esta sendo aplicar o tipo diretamente dentro da entidade usuario */
   "tipo_id": "c1f949f1-3d6d-4cb1-9b0d-905b57c5e60b", /* ainda tenho que estudar como isso vai ser definido */
   "email": "john.test@example.com",
   "senha": "senha"

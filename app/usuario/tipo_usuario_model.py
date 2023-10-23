@@ -3,6 +3,7 @@ from sqlalchemy import Column,String
 from sqlalchemy.orm import relationship
 from database.base import Base
 
+# muitos-para-um (um usuário pode ter um tipo associado, mas um tipo pode estar associado a vários usuários).
 class TipoUser(Base):
     __tablename__ = 'tipouser'
 

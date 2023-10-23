@@ -22,7 +22,7 @@ docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgr
 # Para iniciar o servidor
 
 ```
-uvicorn main:app --reload  
+uvicorn app.main:app --reload  
 ```
 
 - link do servidor: http://127.0.0.1:8000/
@@ -47,4 +47,14 @@ uvicorn main:app --reload
 <div style="color:Yellow;">
 <strong>Erros detectados:</strong> 
 
-- 
+- erro no create usuario expression 'TipoUser' failed to locate a name ('TipoUser').
+
+```
+  sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Usuario(usuario)]'. Original exception was: When initializing mapper Mapper[Usuario(usuario)], expression 'TipoUser' failed to locate a name ('TipoUser'). If this is a class name, consider adding this relationship() to the <class 'app.usuario.usuario_model.Usuario'> class after both dependent classes have been defined.
+```
+
+- o erro aparentimente é na modelagem e estrutura do banco ao qual ainda não sei o que esta acontecendo....
+- comentando o relacionamento de usuario é tipo usuario é deixando na tabela de usuario o tipo o codigo funciona normal (# FIXME: teste para verificar o que esta acontecendo entre os relacionamentos...)
+
+```
+

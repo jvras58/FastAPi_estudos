@@ -45,6 +45,7 @@ def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
+# FIXME: ERRO expression 'TipoUser' failed to locate a name ('TipoUser'). NÃO ESTOU ENTENDENDO O PORQUE 
 def create_user(db: Session, user: UsuarioCreate):
     """
     Cria um novo usuário no banco de dados.
