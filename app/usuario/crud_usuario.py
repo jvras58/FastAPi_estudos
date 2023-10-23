@@ -45,7 +45,7 @@ def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
-# FIXME: ERRO expression 'TipoUser' failed to locate a name ('TipoUser'). NÃO ESTOU ENTENDENDO O PORQUE 
+
 def create_user(db: Session, user: UsuarioCreate):
     """
     Cria um novo usuário no banco de dados.
@@ -63,7 +63,7 @@ def create_user(db: Session, user: UsuarioCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-    
+
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: SessionLocal = Depends(get_db)):
     """
     Obtém o usuário atual a partir do token de autenticação.

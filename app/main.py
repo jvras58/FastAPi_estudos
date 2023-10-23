@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+#tipo usuario
+from app.tipo_usuario.tipo_usuario_controller import router as user_tipo
 #usuario
 from app.usuario.usuario_controller import router as user_control
 # reservas
@@ -28,6 +30,9 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+# ----------------------------------------- tipo_usuario -------------------------------------------------------#
+app.include_router(user_tipo)
 
 # ----------------------------------------- usuario -------------------------------------------------------#
 app.include_router(user_control)

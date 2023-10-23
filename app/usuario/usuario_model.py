@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey,String
 from sqlalchemy.orm import relationship
 from database.base import Base
 
-#FIXME: POR ENQUANTO O UNICO JEITO DE CORRIGIR O ERRO É COLOCANDO O TIPO_USER dentro do proprio models do usuario 
+
 class TipoUser(Base):
     __tablename__ = 'tipouser'
 

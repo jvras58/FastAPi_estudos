@@ -1,9 +1,6 @@
-
----
-
 # Testando as Rotas no Swagger - Reserva
 
-# garanta que ja tenha um usuario criado é se possivel use o mesmo id [ ff3be86a-5c09-4a02-a18f-94ab28e2c91b ]
+# garanta que ja tenha um usuario criado
 
 
 ### 1. Criar uma Nova Área
@@ -83,4 +80,4 @@ Deleta a área correspondente ao ID fornecido.
 - **Substituir `{area_id}` pelo ID da área a ser deletada**
   - Exemplo: `/areas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
 
----
+

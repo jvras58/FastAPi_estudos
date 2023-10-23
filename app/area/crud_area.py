@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database.get_db import SessionLocal, get_db
 from app.area.area_model import Area
 from app.area.area_schema import AreaCreate
-from app.usuario.usuario_model import Usuario
+from app.usuario.usuario_model import TipoUser, Usuario
 
 # TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE  
 def get_area_by_name(nome: str, db: Session = Depends(get_db)):
@@ -61,7 +61,7 @@ def get_available_areas(db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.disponivel == True).all()
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE                                                                                                                                                                      #tipo de usuario...
+# FIXME: ERROR NO CREATE AREA (1- Não consigo passar o tipo adm direito 2- TypeError: app.area.area_model.Area() got multiple values for keyword argument 'usuario_id' )                                                                                                                                                               #tipo de usuario...
 def create_area(db: Session, area: AreaCreate):
     """
     Cria uma nova área no banco de dados.
@@ -73,8 +73,13 @@ def create_area(db: Session, area: AreaCreate):
     Returns:
         Area: A nova área criada.
     """
-    # Verifica se o usuário associado à área existe no banco de dados (é se o tipo é de admiro falta definir isso na tabela de usuario)
-    user = db.query(Usuario).filter(Usuario.id == area.usuario_id, Usuario.tipo == 0).first()
+    # Verifica se o usuário associado à área existe no banco de dados é adm
+    # modelo original que tava antes
+    user = db.query(Usuario).filter(Usuario.id == area.usuario_id, Usuario.tipo == "administrador").first()
+    # ideia do bing
+    #user = db.query(Usuario).filter(Usuario.id == area.usuario_id, Usuario.tipo.has(tipo="administrador")).first()
+    # ideia do gpt
+    #user = db.query(Usuario).join(Usuario.tipo).filter(Usuario.id == area.usuario_id, TipoUser.tipo == "administrador").first()
     if not user:
         raise HTTPException(status_code=400, detail="Invalid user or user type")
 
