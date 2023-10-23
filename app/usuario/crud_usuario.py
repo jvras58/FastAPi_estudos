@@ -96,7 +96,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
         raise credentials_exception
     return user
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+
 def get_account_by_id(db: Session, user_id: str):
     """
     Obtém uma conta pelo seu ID.
@@ -110,27 +110,27 @@ def get_account_by_id(db: Session, user_id: str):
     """
     return db.query(Usuario).filter(Usuario.id == user_id).first()
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
-def get_user_id(db: Session, id: str):
+
+def is_admin(user_id: str, db: Session):
     """
-    Obtém um usuário pelo seu ID.
+    Verifica se o usuário possui privilégios de administrador.
 
     Args:
-        db (Session): Sessão do banco de dados.
-        id (str): ID do usuário.
+        user_id (str): O ID do usuário a ser verificado.
+        db (Session): A sessão do banco de dados para consulta.
 
     Returns:
-        Usuario: O usuário correspondente ao ID especificado.
+        bool: True se o usuário é um administrador, False caso contrário.
 
     Raises:
-        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado ou não for do tipo "0".
+        HTTPException: Se o usuário não for encontrado no banco de dados.
     """
-    user = db.query(Usuario).filter(Usuario.id == id).first()
-    if not user or user.tipo != 0:
-        raise HTTPException(status_code=404, detail="User not found or invalid type")
-    return user
+    user = get_user_by_id(user_id, db)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuário com privilegios de adm não encontrado")
+    return user.tipo.tipo == 'administrador'
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+
 def get_user_reservations(db: Session, user_id: str):
     """
     Obtém o número de reservas associadas a uma conta pelo seu ID.
@@ -144,7 +144,7 @@ def get_user_reservations(db: Session, user_id: str):
     """
     return db.query(Reservation).filter(Reservation.usuario_id == user_id).count()
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+
 def get_account_areas(db: Session, user_id: str):
     """
     Obtém o número de áreas associadas a uma conta pelo seu ID.

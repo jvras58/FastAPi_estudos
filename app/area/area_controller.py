@@ -56,7 +56,7 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Area not found")
     return db_area
 
-
+# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
 @router.get('/areas/disponiveis')
 def get_areas_disponiveis(db: Session = Depends(get_db)):
     """
@@ -88,7 +88,7 @@ def get_area(area_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Area not found")
     return db_area
 
-
+# FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
 @router.put('/areas/{area_id}')
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     """

@@ -1,11 +1,12 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.usuario.crud_usuario import is_admin
 from database.get_db import SessionLocal, get_db
 from app.area.area_model import Area
 from app.area.area_schema import AreaCreate
-from app.usuario.usuario_model import TipoUser, Usuario
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE  
+
+
 def get_area_by_name(nome: str, db: Session = Depends(get_db)):
     """
     Obtém uma área pelo seu nome.
@@ -19,7 +20,7 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.nome == nome).first()
 
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
+
 def get_all(db: Session = Depends(get_db)):
     """
     Obtém todas as áreas no banco de dados.
@@ -48,7 +49,7 @@ def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.id == area_id).first()
 
-
+# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
 def get_available_areas(db: Session = Depends(get_db)):
     """
     Obtém todas as áreas disponíveis.
@@ -61,36 +62,34 @@ def get_available_areas(db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.disponivel == True).all()
 
-# FIXME: ERROR NO CREATE AREA (1- Não consigo passar o tipo adm direito 2- TypeError: app.area.area_model.Area() got multiple values for keyword argument 'usuario_id' )                                                                                                                                                               #tipo de usuario...
 def create_area(db: Session, area: AreaCreate):
     """
     Cria uma nova área no banco de dados.
 
+    Verifica se o usuário associado à área existe no banco de dados e é um administrador.
+    Verifica se a área já existe pelo nome.
+
     Args:
-        db (Session): Uma sessão do banco de dados.
-        area (AreaCreate): Os dados da nova área.
+        db (Session): A sessão do banco de dados para consulta.
+        area (AreaCreate): Os dados para criar a nova área.
 
     Returns:
-        Area: A nova área criada.
+        Area: A área recém-criada.
+
+    Raises:
+        HTTPException: Se o usuário não for encontrado, não for um administrador ou se a área já existir.
     """
-    # Verifica se o usuário associado à área existe no banco de dados é adm
-    # modelo original que tava antes
-    user = db.query(Usuario).filter(Usuario.id == area.usuario_id, Usuario.tipo == "administrador").first()
-    # ideia do bing
-    #user = db.query(Usuario).filter(Usuario.id == area.usuario_id, Usuario.tipo.has(tipo="administrador")).first()
-    # ideia do gpt
-    #user = db.query(Usuario).join(Usuario.tipo).filter(Usuario.id == area.usuario_id, TipoUser.tipo == "administrador").first()
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid user or user type")
+    # Verifica se o usuário associado à área existe no banco de dados é administrador
+    if not is_admin(area.usuario_id, db):
+        raise HTTPException(status_code=400, detail="Usuário não encontrado ou não é administrador")
 
     # Verifica se a área já existe pelo nome
-    db_area = db.query(Area).filter(Area.nome == area.nome).first()
-    if db_area:
-        raise HTTPException(status_code=400, detail="Area already exists")
+    area_exist = get_area_by_name(area.nome, db)
+    if area_exist is not None:
+        raise HTTPException(status_code=400, detail="Área já existe")
 
-    # Cria a nova área associando o ID do usuário
-    db_area = Area(**area.model_dump(), usuario_id=area.usuario_id)
-
+    # Criar a nova área associando o ID do usuário
+    db_area = Area(**area.model_dump())
     db.add(db_area)
     db.commit()
     db.refresh(db_area)
@@ -120,7 +119,7 @@ def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     db.commit()
     return db_area
 
-# TODO: MODIFICAÇÕES/ATUALIZAÇÕES COM BASE NO PROJETO BASE
+
 def delete_area(area_id: str, db: Session = Depends(get_db)):
     """
     Deleta uma área existente.
@@ -137,21 +136,3 @@ def delete_area(area_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Area not found")
     db.delete(db_area)
     db.commit()
-
-# EXCLUDEME: VERSÃO ANTIGA
-# def delete_area_update(area_id: str, db: Session = Depends(get_db)):
-#     """
-#     Define a disponibilidade de uma área como `False`, em vez de excluir completamente do banco de dados.
-
-#     Args:
-#         area_id (str): O ID da área a ser atualizada.
-#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
-
-#     Raises:
-#         HTTPException: Retorna um erro HTTP 404 se a área não for encontrada.
-#     """
-#     db_area = get_area_by_id(area_id, db)
-#     if not db_area:
-#         raise HTTPException(status_code=404, detail="Area not found")
-#     db_area.disponivel = False
-#     db.commit()
