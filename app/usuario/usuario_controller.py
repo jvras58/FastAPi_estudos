@@ -2,7 +2,6 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Annotated, Type
-from app.usuario.usuario_model import TipoUser
 from database.get_db import get_db
 from datetime import timedelta
 from app.security.auth import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate, create_access_token, verify_password
@@ -12,9 +11,9 @@ from fastapi import APIRouter
 from app.usuario.usuario_schemas import UsuarioCreate, Token
 import app.usuario.crud_usuario as crud_usuario
 
-router = APIRouter()
+router_usuario = APIRouter()
 
-@router.post('/usuarios')
+@router_usuario.post('/usuarios')
 def create_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     """
     Cria um novo usuário no sistema.
@@ -34,7 +33,7 @@ def create_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud_usuario.create_user(db=db, user=usuario)
 
-@router.post("/token", response_model=Token)
+@router_usuario.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
@@ -67,7 +66,7 @@ async def login_for_access_token(
 
 # TODO: NOVAS ROTAS DE ACORDO COM AS MODIFICAÇÕES COM BASE NO PROJETO BASE
 #----------------------------Inicio------------------------------------------------------#
-@router.get('/usuarios/{user_id}')
+@router_usuario.get('/usuarios/{user_id}')
 def get_user(user_id: str, db: Session = Depends(get_db)):
     """ Obtém um usuário pelo seu ID.
 
@@ -86,7 +85,7 @@ def get_user(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-@router.put('/usuarios/{user_id}')
+@router_usuario.put('/usuarios/{user_id}')
 def update_user(user_id: str, usuario: UsuarioCreate, db: Session = Depends(get_db)):
     """ Obtém um usuário pelo seu ID.
 
@@ -103,7 +102,7 @@ def update_user(user_id: str, usuario: UsuarioCreate, db: Session = Depends(get_
     """
     return crud_usuario.update_user(user_id, usuario, db)
 
-@router.delete('/usuarios/{user_id}')
+@router_usuario.delete('/usuarios/{user_id}')
 def delete_user(user_id: str, db: Session = Depends(get_db)):
     """ Obtém um usuário pelo seu ID.
 
@@ -117,7 +116,7 @@ def delete_user(user_id: str, db: Session = Depends(get_db)):
     crud_usuario.delete_user(user_id, db)
     return {"detail": "Usuário deletado com sucesso"}
 
-@router.get('/usuarios/{user_id}/reservas')
+@router_usuario.get('/usuarios/{user_id}/reservas')
 def get_user_reservations(user_id: str, db: Session = Depends(get_db)):
     """ Obtém o número de reservas associadas a uma conta pelo seu ID.
 
@@ -130,7 +129,7 @@ def get_user_reservations(user_id: str, db: Session = Depends(get_db)):
     """  
     return crud_usuario.get_user_reservations(user_id, db)
 
-@router.get('/usuarios/{user_id}/areas')
+@router_usuario.get('/usuarios/{user_id}/areas')
 def get_account_areas(user_id: str, db: Session = Depends(get_db)):
     """
     Obtém o número de áreas associadas a uma conta pelo seu ID.
@@ -145,7 +144,7 @@ def get_account_areas(user_id: str, db: Session = Depends(get_db)):
     return crud_usuario.get_account_areas(user_id, db)
 #----------------------------fim------------------------------------------------------#
 
-@router.put("/usuario/update_senha")
+@router_usuario.put("/usuario/update_senha")
 def update_senha(new_password: str, old_password: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Atualiza a senha do usuário.
@@ -172,7 +171,7 @@ def update_senha(new_password: str, old_password: str, current_user: Type = Depe
     crud_usuario.update_user_password(db, current_user, new_password)
     return {"detail": "Senha atualizada com sucesso"}
 
-@router.delete("/usuario/delete")
+@router_usuario.delete("/usuario/delete")
 def delete(current_user = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Deleta o usuário atualmente autenticado.

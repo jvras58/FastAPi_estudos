@@ -32,10 +32,10 @@ uvicorn app.main:app --reload
 
    - Entre no link: http://127.0.0.1:8000/docs:
 
-   1. [Para testar as rotas de Usuario é necessario criar um tipo de usuario](app/test/swegger/tipo_usuario.md)
-   2. [Para testar as rotas de Usuario](app/test/swegger/usuario.md)
-   3. [Para testar as rotas de Area](app/test/swegger/area.md)
-   4. [Para testar as rotas de Reserva](app/test/swegger/reserva.md)
+   1. [Para testar as rotas de Usuario é necessario criar um tipo de usuario](test/swegger/tipo_usuario.md)
+   2. [Para testar as rotas de Usuario](test/swegger/usuario.md)
+   3. [Para testar as rotas de Area](test/swegger/area.md)
+   4. [Para testar as rotas de Reserva](test/swegger/reserva.md)
 
 <div style="color:red; padding:10px; border-radius: 5px;">
   <strong>OBS:</strong> usuário ainda precisa ser definido como adm ou cliente. No momento, o usuário do teste é adm e cliente. Talvez precisaremos de conexão com a autenticação do ufpe id ou algo semelhante.

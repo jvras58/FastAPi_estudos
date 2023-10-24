@@ -11,9 +11,9 @@ import app.usuario.crud_usuario as crud_usuario
 from app.reserva.reserva_schema import ReservationCreate
 import app.reserva.crud_reserva as crud_reserva
 
-router = APIRouter()
+router_reserva = APIRouter()
 
-@router.post('/reservas')
+@router_reserva.post('/reservas')
 def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     """
     Criar uma nova reserva.
@@ -32,7 +32,7 @@ def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     return response
 
 
-@router.get('/reservas')
+@router_reserva.get('/reservas')
 def get_all_reservas(db: Session = Depends(get_db)):
     """
     Visualiza todas as reservas.
@@ -49,7 +49,7 @@ def get_all_reservas(db: Session = Depends(get_db)):
 
 # ROTA DESATIVADO
 # FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-# @router.get('/reservas/disponiveis')
+# @router_reserva.get('/reservas/disponiveis')
 # def get_reservas_disponiveis(db: Session = Depends(get_db)):
 #     """
 #     Obter a lista de reservas disponíveis.
@@ -63,7 +63,7 @@ def get_all_reservas(db: Session = Depends(get_db)):
 #     return crud_reserva.get_available_reservations(db)
 
 
-@router.get('/reservas/{reservation_id}')
+@router_reserva.get('/reservas/{reservation_id}')
 def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
     """
     Obter os detalhes de uma reserva pelo ID.
@@ -80,7 +80,7 @@ def get_reserva(reservation_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Reservation not found")
     return db_reservation
 
-@router.put('/reservas/{reservation_id}')
+@router_reserva.put('/reservas/{reservation_id}')
 def update_reserva(reservation_id: str, reserva: ReservationCreate, db: Session = Depends(get_db)):
     """
     Atualiza os detalhes de uma reserva.
@@ -95,7 +95,7 @@ def update_reserva(reservation_id: str, reserva: ReservationCreate, db: Session 
     """
     return crud_reserva.update_reservation(reservation_id, reserva, db)
 
-@router.delete('/reservas/{reservation_id}')
+@router_reserva.delete('/reservas/{reservation_id}')
 def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     """
     Deleta uma reserva.
@@ -110,7 +110,7 @@ def delete_reserva(reservation_id: str, db: Session = Depends(get_db)):
     crud_reserva.delete_reservation(reservation_id, db)
     return {"detail": "Reserva deletada com sucesso"}
 
-@router.get('/usuario/reservas')
+@router_reserva.get('/usuario/reservas')
 def get_reservas_usuario(current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Obtém as reservas associadas ao usuário atualmente autenticado.
@@ -124,7 +124,7 @@ def get_reservas_usuario(current_user: Type = Depends(crud_usuario.get_current_u
     """
     return crud_reserva.get_reservations_by_user_id(current_user.id, db)
 
-@router.get('/usuario/reservas/{reservation_id}')
+@router_reserva.get('/usuario/reservas/{reservation_id}')
 def get_reserva_usuario(reservation_id: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):
     """
     Obtém uma reserva específica associada ao usuário atualmente autenticado.

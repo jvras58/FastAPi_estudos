@@ -7,11 +7,11 @@ from fastapi import APIRouter
 from app.area.area_schema import AreaCreate
 import app.area.crud_area as crud_area
 
-router = APIRouter()
+router_area = APIRouter()
 
 
 
-@router.post('/areas')
+@router_area.post('/areas')
 def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     """
     Criar uma nova área.
@@ -25,7 +25,7 @@ def create_area(area: AreaCreate, db: Session = Depends(get_db)):
     """  
     return crud_area.create_area(db=db, area=area)
 
-@router.get('/areas')
+@router_area.get('/areas')
 def get_all_areas(db: Session = Depends(get_db)):
     """
     Visualiza todas as areas.
@@ -39,7 +39,7 @@ def get_all_areas(db: Session = Depends(get_db)):
     """  
     return crud_area.get_all(db)
 
-@router.get('/areas/nome/{nome}')
+@router_area.get('/areas/nome/{nome}')
 def get_area_by_name(nome: str, db: Session = Depends(get_db)):
     """
     Visualiza a area pelo nome.
@@ -58,7 +58,7 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
 
 # ROTA DESATIVADA
 # FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-# @router.get('/areas/disponiveis')
+# @router_area.get('/areas/disponiveis')
 # def get_areas_disponiveis(db: Session = Depends(get_db)):
 #     """
 #     Obter todas as áreas disponíveis.
@@ -72,7 +72,7 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
 #     return crud_area.get_available_areas(db)
 
 
-@router.get('/areas/{area_id}')
+@router_area.get('/areas/{area_id}')
 def get_area(area_id: str, db: Session = Depends(get_db)):
     """
     Obter uma área pelo seu ID.
@@ -90,7 +90,7 @@ def get_area(area_id: str, db: Session = Depends(get_db)):
     return db_area
 
 # FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
-@router.put('/areas/{area_id}')
+@router_area.put('/areas/{area_id}')
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     """
     Atualizar os detalhes de uma área.
@@ -106,7 +106,7 @@ def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     return crud_area.update_area(area_id, area, db)
 
 
-@router.delete('/areas/{area_id}')
+@router_area.delete('/areas/{area_id}')
 def delete_area(area_id: str, db: Session = Depends(get_db)):
     """
     Deletar uma área.

@@ -5,10 +5,10 @@ from fastapi import APIRouter
 from app.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
 import app.tipo_usuario.crud_tipo_usuario as crud_tipo_user
 
-router = APIRouter()
+router_tipo_usuario = APIRouter()
 
 
-@router.post('/tipos_usuario')
+@router_tipo_usuario.post('/tipos_usuario')
 def create_tipo_usuario(tipo_usuario: TipoUserCreate, db: Session = Depends(get_db)):
     """
     Cria um novo tipo de usuário.
