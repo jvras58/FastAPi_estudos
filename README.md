@@ -32,10 +32,10 @@ uvicorn app.main:app --reload
 
    - Entre no link: http://127.0.0.1:8000/docs:
 
-   1. [Para testar as rotas de Usuario é necessario criar um tipo de usuario](app/tipo_usuario/tipo_usuario.md)
-   2. [Para testar as rotas de Usuario](app/usuario/usuario.md)
-   3. [Para testar as rotas de Area](app\area\area.md)
-   4. [Para testar as rotas de Reserva](app\reserva\reserva.md)
+   1. [Para testar as rotas de Usuario é necessario criar um tipo de usuario](app/test/swegger/tipo_usuario.md)
+   2. [Para testar as rotas de Usuario](app/test/swegger/usuario.md)
+   3. [Para testar as rotas de Area](app/test/swegger/area.md)
+   4. [Para testar as rotas de Reserva](app/test/swegger/reserva.md)
 
 <div style="color:red; padding:10px; border-radius: 5px;">
   <strong>OBS:</strong> usuário ainda precisa ser definido como adm ou cliente. No momento, o usuário do teste é adm e cliente. Talvez precisaremos de conexão com a autenticação do ufpe id ou algo semelhante.
@@ -43,6 +43,3 @@ uvicorn app.main:app --reload
 
 <div style="color:Yellow;">
 <strong>Erros detectados:</strong>
-
-- erro no create usuario expression 'TipoUser' failed to locate a name ('TipoUser'). (corrigido colocando o models do tipo usuario dentro do models de usuario)
-  ![1698068918389](image/README/1698068918389.png)
