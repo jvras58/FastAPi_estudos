@@ -96,7 +96,7 @@ def create_area(db: Session, area: AreaCreate):
     db.refresh(db_area)
     return db_area
 
-# FIXME: ESSE CRUD NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
+# FIXME: ESSE def NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
 def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
     """
     Atualiza uma área existente.

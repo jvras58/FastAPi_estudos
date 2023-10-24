@@ -11,14 +11,13 @@ Cria uma nova área com os detalhes fornecidos.
 - **Corpo da Requisição (JSON):** 
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef9",
+  "id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
   "nome": "Quadra de volei",
   "descricao": "Uma quadra de volei espaçosa",
   "iluminacao": "LED",
   "tipo_piso": "Liso",
   "covered": "Sim",
   "foto_url": "https://example.com/quadra_volei.jpg",
-  "area_id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
   "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
 }
 ```
@@ -49,7 +48,8 @@ Retorna os detalhes da área correspondente ao ID fornecido.
 - **Método:** GET
 - **Endpoint:** `/areas/{area_id}`
 - **Substituir `{area_id}` pelo ID da área desejada**
-  - Exemplo: `/areas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
+  - Exemplo: `/areas/0e398c13-163c-4939-a68b-39b21e10c2c7
+0e398c13-163c-4939-a68b-39b21e10c2c7`
 
 ### 6. Atualizar os Detalhes de uma Área
 Atualiza os detalhes de uma área existente.
@@ -60,14 +60,13 @@ Atualiza os detalhes de uma área existente.
 - **Corpo da Requisição (JSON):** 
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef9",
+  "id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
   "nome": "Quadra de volei",
   "descricao": "Uma quadra de volei pequena",
   "iluminacao": "LED Inteligente",
   "tipo_piso": "Cimento",
   "covered": "Sim",
   "foto_url": "https://example.com/quadra_volei.jpg",
-  "area_id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
   "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
 }
 ```
@@ -78,7 +77,7 @@ Deleta a área correspondente ao ID fornecido.
 - **Método:** DELETE
 - **Endpoint:** `/areas/{area_id}`
 - **Substituir `{area_id}` pelo ID da área a ser deletada**
-  - Exemplo: `/areas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
+  - Exemplo: `/areas/0e398c13-163c-4939-a68b-39b21e10c2c7`
 
 
 - ERROS DETECTADOS NAS ROTAS DE AREA:

@@ -13,8 +13,8 @@ Cria uma nova reserva com os detalhes fornecidos.
 - **Corpo da Requisição (JSON):** 
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef9",
-  "valor": null,  /* O valor será calculado automaticamente com base nas horas de início e fim */
+  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef5",
+  "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
   "reserva_data": "2023-10-23T12:00:00",
   "hora_inicio": "2023-10-23T14:00:00",
   "hora_fim": "2023-10-23T16:00:00",
@@ -44,7 +44,7 @@ Retorna os detalhes da reserva correspondente ao ID fornecido.
 - **Método:** GET
 - **Endpoint:** `/reservas/{reservation_id}`
 - **Substituir `{reservation_id}` pelo ID da reserva desejada**
-  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
+  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
 
 ### 5. Atualizar os Detalhes de uma Reserva
 Atualiza os detalhes de uma reserva existente.
@@ -55,8 +55,8 @@ Atualiza os detalhes de uma reserva existente.
 - **Corpo da Requisição (JSON):** 
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef9",
-  "valor": null,  /* O valor será calculado automaticamente com base nas horas de início e fim */
+  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef5",
+  "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
   "reserva_data": "2023-10-25T12:00:00",
   "hora_inicio": "2023-10-25T14:00:00",
   "hora_fim": "2023-10-25T16:00:00",
@@ -64,7 +64,7 @@ Atualiza os detalhes de uma reserva existente.
   "reserva_tipo": "Jogo",
   "status": "Confirmada", /* O status será definido automaticamente com base em que? */
   "area_id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
-  "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b" /* O Usuario tbm não precisa ser o mesmo que criou area.*/
+  "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b" /* O Usuario tbm não precisa ser o mesmo que criou area. (mas nesse caso é)*/
 }
 ```
 
@@ -74,7 +74,7 @@ Deleta a reserva correspondente ao ID fornecido.
 - **Método:** DELETE
 - **Endpoint:** `/reservas/{reservation_id}`
 - **Substituir `{reservation_id}` pelo ID da reserva a ser deletada**
-  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
+  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
 
 ### 7. Visualizar Reservas do Usuário Atual
 Retorna uma lista de todas as reservas associadas ao usuário autenticado.
@@ -90,11 +90,6 @@ Retorna os detalhes da reserva associada ao usuário autenticado correspondente 
 - **Substituir `{reservation_id}` pelo ID da reserva desejada
 
 **
-  - Exemplo: `/usuario/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef9`
+  - Exemplo: `/usuario/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
 
 ---
-
-<div style="color:red;">
-<strong>Erros detectados:</strong> 
-
-- 
