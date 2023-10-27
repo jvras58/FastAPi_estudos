@@ -56,21 +56,6 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Area not found")
     return db_area
 
-# ROTA DESATIVADA
-# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-# @router_area.get('/areas/disponiveis')
-# def get_areas_disponiveis(db: Session = Depends(get_db)):
-#     """
-#     Obter todas as áreas disponíveis.
-
-#     Args:
-#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
-
-#     Returns:
-#         List[Area]: Uma lista de áreas disponíveis.
-#     """  
-#     return crud_area.get_available_areas(db)
-
 
 @router_area.get('/areas/{area_id}')
 def get_area(area_id: str, db: Session = Depends(get_db)):

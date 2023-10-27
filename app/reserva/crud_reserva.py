@@ -35,21 +35,6 @@ def get_reservations_by_user_id(user_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Reservation).filter(Reservation.usuario_id == user_id).all()
 
-# CRUD DESATIVADO
-# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-# def get_available_reservations(db: Session = Depends(get_db)):
-#     """
-#     Obtém todas as reservas disponíveis no banco de dados.
-
-#     Args:
-#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
-
-#     Returns:
-#         List[Reservation]: Uma lista de reservas disponíveis, ou uma lista vazia se não houver nenhuma.
-#     """
-#     return db.query(Reservation).filter(Reservation.disponivel == True).all()
-
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
 def create_reservation(db: Session, reservation: ReservationCreate):
     """
     Cria uma nova reserva no banco de dados.
@@ -109,14 +94,6 @@ def create_reservation(db: Session, reservation: ReservationCreate):
         usuario_id=reservation.usuario_id
     )
 
-    # FIXME: realmente não sei se é necessario ou não manter essa atualização nas tabelas pára verificar se a area esta disponivel ou não ... eu to começando a questionar kk 
-    
-    # # Após a reserva ser criada, atualiza a disponibilidade da área associada
-    # db_area = db.query(Area).filter(Area.id == area_id).first()
-    # if db_area:
-    #     db_area.disponivel = False 
-    #     db.commit()
-
     db.add(db_reservation)
     db.commit()
     db.refresh(db_reservation)
@@ -164,37 +141,6 @@ def delete_reservation(db: Session, db_reservation: Reservation):
     db.delete(db_reservation)
     db.commit()
 
-# TODO: VERSÃO ANTIGA USANDO A COLUNA DE DISPONIBILIDADE 
-# def delete_reservation(reservation_id: str, db: Session = Depends(get_db)):
-#     """
-#     Exclui uma reserva existente.
-
-#     Args:
-#         reservation_id (str): O ID da reserva a ser excluída.
-#         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
-
-#     Raises:
-#         HTTPException: Retorna um erro 404 se a reserva não for encontrada.
-
-#     Returns:
-#         dict: Um dicionário com uma mensagem indicando que a reserva foi excluída com sucesso.
-#     """
-#     db_reservation = get_reservation_by_id(reservation_id, db)
-#     if not db_reservation:
-#         raise HTTPException(status_code=404, detail="Reservation not found")
-    
-#     # Antes de excluir a reserva obtenha o id da área associada
-#     area_id = db_reservation.area_id
-#     db.delete(db_reservation)
-#     db.commit()
-    
-#     # após a reserva ser excluída, atualiza a disponibilidade da área associada
-#     db_area = db.query(Area).filter(Area.id == area_id).first()
-#     if db_area:
-#         db_area.disponivel = True  # Marca disponível
-#         db.commit()
-
-# TODO: MODIFICAÇÕES COM BASE NO PROJETO BASE 
 def get_price(reservation: ReservationCreate):
     """
     Calcula o preço da reserva com base nas horas de início e fim.

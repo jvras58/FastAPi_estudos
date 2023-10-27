@@ -49,20 +49,6 @@ def get_area_by_id(area_id: str, db: Session = Depends(get_db)):
     """
     return db.query(Area).filter(Area.id == area_id).first()
 
-# CRUD DESATIVADO
-# FIXME: FOI RETIRADO ESSA COLUNA CHAMADA DISPONIVEL VERIFICAR OQ DA PRA FAZER COM ESSA ROTA
-# def get_available_areas(db: Session = Depends(get_db)):
-#     """
-#     Obtém todas as áreas disponíveis.
-
-#     Args:
-#         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
-
-#     Returns:
-#         List[Area]: Uma lista de todas as áreas disponíveis.
-#     """
-#     return db.query(Area).filter(Area.disponivel == True).all()
-
 def create_area(db: Session, area: AreaCreate):
     """
     Cria uma nova área no banco de dados.

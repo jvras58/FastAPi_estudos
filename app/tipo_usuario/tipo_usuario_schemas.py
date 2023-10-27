@@ -6,7 +6,3 @@ class TipoUserBase(BaseModel):
 
 class TipoUserCreate(TipoUserBase):
     pass
-
-class TipoUser(TipoUserBase):
-    class Config:
-        from_attributes = True

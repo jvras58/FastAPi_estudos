@@ -64,8 +64,7 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-# TODO: NOVAS ROTAS DE ACORDO COM AS MODIFICAÇÕES COM BASE NO PROJETO BASE
-#----------------------------Inicio------------------------------------------------------#
+
 @router_usuario.get('/usuarios/{user_id}')
 def get_user(user_id: str, db: Session = Depends(get_db)):
     """ Obtém um usuário pelo seu ID.
@@ -142,7 +141,7 @@ def get_account_areas(user_id: str, db: Session = Depends(get_db)):
         int: O número de áreas associadas à conta.
     """
     return crud_usuario.get_account_areas(user_id, db)
-#----------------------------fim------------------------------------------------------#
+
 
 @router_usuario.put("/usuario/update_senha")
 def update_senha(new_password: str, old_password: str, current_user: Type = Depends(crud_usuario.get_current_user), db: Session = Depends(get_db)):

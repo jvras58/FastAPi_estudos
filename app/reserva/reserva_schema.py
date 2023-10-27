@@ -5,7 +5,6 @@ from datetime import datetime
 class ReservationBase(BaseModel):
     id: str
     valor: int
-    #disponivel: bool
     reserva_data: datetime
     hora_inicio: datetime
     hora_fim: datetime

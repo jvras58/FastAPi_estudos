@@ -22,4 +22,3 @@ def create_tipo_usuario(tipo_usuario: TipoUserCreate, db: Session = Depends(get_
     """
     return crud_tipo_user.create_tipo_usuario(db=db, tipo_usuario=tipo_usuario)
 
-# num sei se eu crio um update ou delete enfim fica a cargo de cleber dizer...

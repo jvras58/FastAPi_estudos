@@ -15,7 +15,6 @@ class Reservation(Base):
     justificacao = Column(String)
     reserva_tipo = Column(String)
     status = Column(String)
-    #disponivel=Column(String)
     
     area_id = Column(UUID, ForeignKey("areas.id"))
     usuario_id = Column(UUID, ForeignKey("usuario.id"))
