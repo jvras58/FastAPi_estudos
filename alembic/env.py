@@ -30,6 +30,8 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 # ---------------- LOADING Models -------------------------#
+#FIXME: POR ENQUANTO O UNICO JEITO DE CORRIGIR O ERRO É COLOCANDO O TIPO_USER dentro do proprio models do usuario (ERRO expression 'TipoUser' failed to locate a name ('TipoUser'))
+#from app.usuario.tipo_usuario_model import Base
 from app.usuario.usuario_model import Base
 from app.area.area_model import Base
 from app.reserva.reserva_model import Base

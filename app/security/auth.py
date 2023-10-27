@@ -3,7 +3,7 @@ from fastapi import Depends
 from passlib.context import CryptContext
 from jose import jwt
 
-import app.usuario.crud_usuario as crud_user 
+import app.usuario.crud_usuario as crud_usuario 
 from database.get_db import SessionLocal, get_db
 
 SECRET_KEY = "2b9297ddf50a5336ba333962928ce57a1db91464c45c1831d26a4e4b23f5889d"
@@ -20,7 +20,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def authenticate(email: str, password: str, db: SessionLocal = Depends(get_db)):
-    user = crud_user.get_user_by_email(db = db, email_user = email)
+    user = crud_usuario.get_user_by_email(db = db, email_user = email)
     if not user:
         return False
     if not verify_password(password, user.senha):

@@ -1,7 +1,9 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
+from app.area.area_model import Area
 from database.get_db import SessionLocal, get_db
+from app.reserva.reserva_model import Reservation
 from app.usuario.usuario_model import Usuario
 from app.usuario.usuario_schemas import UsuarioCreate
 import app.security.auth as auth
@@ -26,6 +28,24 @@ def get_user_by_email(email_user: str, db: SessionLocal = Depends(get_db)):
     """
     return db.query(Usuario).filter(Usuario.email == email_user).first()
 
+
+def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    """
+    Obtém um usuário pelo seu ID.
+
+    Args:
+        user_id (str): ID do usuário.
+        db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+
+    Raises:
+        HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
+    """
+    return db.query(Usuario).filter(Usuario.id == user_id).first()
+
+
 def create_user(db: Session, user: UsuarioCreate):
     """
     Cria um novo usuário no banco de dados.
@@ -43,7 +63,7 @@ def create_user(db: Session, user: UsuarioCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-    
+
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: SessionLocal = Depends(get_db)):
     """
     Obtém o usuário atual a partir do token de autenticação.
@@ -72,7 +92,116 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Se
         raise credentials_exception
 
     user = get_user_by_email(db = db, email_user = email)
-
     if user is None:
         raise credentials_exception
+    return user
+
+
+def get_account_by_id(db: Session, user_id: str):
+    """
+    Obtém uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID da conta.
+
+    Returns:
+        Usuario: O usuário correspondente ao ID especificado.
+    """
+    return db.query(Usuario).filter(Usuario.id == user_id).first()
+
+
+def is_admin(user_id: str, db: Session):
+    """
+    Verifica se o usuário possui privilégios de administrador.
+
+    Args:
+        user_id (str): O ID do usuário a ser verificado.
+        db (Session): A sessão do banco de dados para consulta.
+
+    Returns:
+        bool: True se o usuário é um administrador, False caso contrário.
+
+    Raises:
+        HTTPException: Se o usuário não for encontrado no banco de dados.
+    """
+    user = get_user_by_id(user_id, db)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuário com privilegios de adm não encontrado")
+    return user.tipo.tipo == 'administrador'
+
+
+def get_user_reservations(db: Session, user_id: str):
+    """
+    Obtém o número de reservas associadas a uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário.
+
+    Returns:
+        int: O número de reservas associadas à conta.
+    """
+    return db.query(Reservation).filter(Reservation.usuario_id == user_id).count()
+
+
+def get_account_areas(db: Session, user_id: str):
+    """
+    Obtém o número de áreas associadas a uma conta pelo seu ID.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário.
+
+    Returns:
+        int: O número de áreas associadas à conta.
+    """
+    return db.query(Area).filter(Area.usuario_id == user_id).count()
+
+# TODO: FUNCÕES QUE ESTAVAM OCIOSAS DESDE O COMEÇO(AINDA EM TESTE DO SEU PLENO FUNCIONAMENTO..)
+def update_user_password(db: Session, user: Usuario, new_password: str):
+    """
+    Atualiza a senha de um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user (Usuario): O usuário cuja senha será atualizada.
+        new_password (str): A nova senha do usuário.
+    """
+    user.senha = auth.get_password_hash(new_password)
+    db.commit()
+
+def delete_user(db: Session, user: Usuario):
+    """
+    Deleta um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user (Usuario): O usuário a ser deletado.
+    """
+    db.delete(user)
+    db.commit()
+    
+def update_user(db: Session, user_id: str, user_update: UsuarioCreate):
+    """
+    Atualiza os detalhes de um usuário.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        user_id (str): ID do usuário a ser atualizado.
+        user_update (UsuarioCreate): Os novos detalhes do usuário.
+
+    Returns:
+        Usuario: O usuário atualizado.
+    """
+    user = get_user_by_id(user_id, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for var, value in vars(user_update).items():
+        setattr(user, var, value) if value else None
+
+    db.commit()
+    db.refresh(user)
+
     return user
