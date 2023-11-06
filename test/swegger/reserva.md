@@ -3,7 +3,7 @@
 
 # Testando as Rotas no Swagger - Reserva 
 
-# garanta que ja tenha uma area criada é se possivel use o mesmo id [ 0e398c13-163c-4939-a68b-39b21e10c2c7 ]
+# garanta que ja tenha uma area criada é se possivel use o mesmo id
 
 ### 1. Criar uma Nova Reserva
 Cria uma nova reserva com os detalhes fornecidos.
@@ -11,9 +11,10 @@ Cria uma nova reserva com os detalhes fornecidos.
 - **Método:** POST
 - **Endpoint:** `/reservas`
 - **Corpo da Requisição (JSON):** 
+
+- adm:
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef5",
   "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
   "reserva_data": "2023-10-23T12:00:00",
   "hora_inicio": "2023-10-23T14:00:00",
@@ -21,8 +22,22 @@ Cria uma nova reserva com os detalhes fornecidos.
   "justificacao": "Jogo de Equipe",
   "reserva_tipo": "Jogo",
   "status": "Em análise",
-  "area_id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
-  "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
+  "area_id": "1",
+  "usuario_id": "3"
+}
+```
+- cliente:
+```json
+{
+  "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
+  "reserva_data": "2023-10-23T12:00:00",
+  "hora_inicio": "2023-10-23T14:00:00",
+  "hora_fim": "2023-10-23T16:00:00",
+  "justificacao": "Jogo de Equipe",
+  "reserva_tipo": "Jogo",
+  "status": "Em análise",
+  "area_id": "1",
+  "usuario_id": "4"
 }
 ```
 
@@ -44,7 +59,7 @@ Retorna os detalhes da reserva correspondente ao ID fornecido.
 - **Método:** GET
 - **Endpoint:** `/reservas/{reservation_id}`
 - **Substituir `{reservation_id}` pelo ID da reserva desejada**
-  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
+  - Exemplo: `/reservas/1`
 
 ### 5. Atualizar os Detalhes de uma Reserva
 Atualiza os detalhes de uma reserva existente.
@@ -53,18 +68,34 @@ Atualiza os detalhes de uma reserva existente.
 - **Endpoint:** `/reservas/{reservation_id}`
 - **Substituir `{reservation_id}` pelo ID da reserva a ser atualizada**
 - **Corpo da Requisição (JSON):** 
+
+- adm:
 ```json
 {
-  "id": "2c5f7a10-0d57-45b2-82da-df16d2075ef5",
   "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
-  "reserva_data": "2023-10-25T12:00:00",
-  "hora_inicio": "2023-10-25T14:00:00",
-  "hora_fim": "2023-10-25T16:00:00",
-  "justificacao": "Jogo de Equipe Atualizada",
+  "reserva_data": "2023-10-23T12:00:00",
+  "hora_inicio": "2023-10-23T14:00:00",
+  "hora_fim": "2023-10-23T16:00:00",
+  "justificacao": "Jogo de Equipe",
   "reserva_tipo": "Jogo",
-  "status": "Confirmada", /* O status será definido automaticamente com base em que? */
-  "area_id": "0e398c13-163c-4939-a68b-39b21e10c2c7",
-  "usuario_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b" /* O Usuario tbm não precisa ser o mesmo que criou area. (mas nesse caso é)*/
+  "status": "Em análise",
+  "area_id": "1",
+  "usuario_id": "1"
+}
+```
+
+- cliente:
+```json
+{
+  "valor": 0,  /* O valor será calculado automaticamente com base nas horas de início e fim é necessario colocar um valor fake */
+  "reserva_data": "2023-10-23T14:00:00",
+  "hora_inicio": "2023-10-23T15:00:00",
+  "hora_fim": "2023-10-23T16:00:00",
+  "justificacao": "Jogo de queimado",
+  "reserva_tipo": "Jogo",
+  "status": "Em análise",
+  "area_id": "1",
+  "usuario_id": "2"
 }
 ```
 
@@ -74,7 +105,7 @@ Deleta a reserva correspondente ao ID fornecido.
 - **Método:** DELETE
 - **Endpoint:** `/reservas/{reservation_id}`
 - **Substituir `{reservation_id}` pelo ID da reserva a ser deletada**
-  - Exemplo: `/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
+  - Exemplo: `/reservas/1`
 
 ### 7. Visualizar Reservas do Usuário Atual
 Retorna uma lista de todas as reservas associadas ao usuário autenticado.
@@ -87,9 +118,7 @@ Retorna os detalhes da reserva associada ao usuário autenticado correspondente 
 
 - **Método:** GET
 - **Endpoint:** `/usuario/reservas/{reservation_id}`
-- **Substituir `{reservation_id}` pelo ID da reserva desejada
-
-**
-  - Exemplo: `/usuario/reservas/2c5f7a10-0d57-45b2-82da-df16d2075ef5`
+- **Substituir `{reservation_id}` pelo ID da reserva desejada**
+- Exemplo: `/usuario/reservas/1`
 
 ---

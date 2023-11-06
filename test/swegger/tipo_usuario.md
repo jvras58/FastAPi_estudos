@@ -12,8 +12,15 @@
 
 ```json
 {
-  "id": "c1f949f1-3d6d-4cb1-9b0d-905b57c5e60b",
+  "id": "1",
   "tipo": "administrador"
+}
+```
+
+```json
+{
+  "id": "2",
+  "tipo": "cliente"
 }
 ```
 

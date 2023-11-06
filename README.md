@@ -37,9 +37,12 @@ uvicorn app.main:app --reload
    3. [Para testar as rotas de Area](test/swegger/area.md)
    4. [Para testar as rotas de Reserva](test/swegger/reserva.md)
 
-<div style="color:red; padding:10px; border-radius: 5px;">
-  <strong>OBS:</strong> usuário ainda precisa ser definido como adm ou cliente. No momento, o usuário do teste é adm e cliente. Talvez precisaremos de conexão com a autenticação do ufpe id ou algo semelhante.
-</div>
 
 <div style="color:Yellow;">
 <strong>Erros detectados:</strong>
+
+FIXME: (ERRO expression 'TipoUser' failed to locate a name ('TipoUser'))
+
+POR ENQUANTO O UNICO JEITO DE CORRIGIR O ERRO É COLOCANDO O TIPO_USER dentro do proprio models do usuario
+
+---

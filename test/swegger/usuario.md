@@ -1,7 +1,7 @@
 
 ---
 
-# Testando as Rotas no Swagger - Usuário
+# Testando as Rotas no Swagger - Usuário (Garanta que o banco ao Testar Esteja Vazio)
 
 
 ### **1. Criar um Novo Usuário**
@@ -12,13 +12,22 @@
 
 - Insira os detalhes do novo usuário nos campos fornecidos. Exemplo de JSON:
 
+- adm:
 ```json
 {
-  "id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b",
-  "nome": "Jonh test",
-  "tipo_id": "c1f949f1-3d6d-4cb1-9b0d-905b57c5e60b",
-  "email": "john.test@example.com",
-  "senha": "senha"
+  "nome": "adm test",
+  "tipo_id": "1",
+  "email": "adm.test@example.com",
+  "senha": "senhaadm"
+}
+```
+- cliente:
+```json
+{
+  "nome": "cliente test",
+  "tipo_id": "2",
+  "email": "cliente.test@example.com",
+  "senha": "senhacliente"
 }
 ```
 
@@ -32,12 +41,18 @@
 
 - Insira o ID do usuário que deseja obter nos campos fornecidos. Exemplo de JSON:
 
+- adm:
 ```json
 {
-  "user_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
+  "user_id": "1"
 }
 ```
-
+- cliente:
+```json
+{
+  "user_id": "2"
+}
+```
 - Clique em "Execute" para enviar a requisição.
 
 ### **3. Atualizar um Usuário Existente**
@@ -48,11 +63,20 @@
 
 - Insira o ID do usuário que deseja atualizar nos campos fornecidos. Exemplo de JSON:
 
+- adm:
 ```json
 {
-  "user_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b",
-  "nome": "Jonh test Jr.",
-  "email": "john.test.jr@example.com"
+  "user_id": "1",
+  "nome": "adm test Jr.",
+  "email": "adm.test.jr@example.com"
+}
+```
+- cliente:
+```json
+{
+  "user_id": "2",
+  "nome": "cliente test Jr.",
+  "email": "cliente.test.jr@example.com"
 }
 ```
 
@@ -66,9 +90,16 @@
 
 - Insira o ID do usuário que deseja deletar nos campos fornecidos. Exemplo de JSON:
 
+- adm
 ```json
 {
-  "user_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
+  "user_id": "1"
+}
+```
+- cliente 
+```json
+{
+  "user_id": "2"
 }
 ```
 
@@ -82,9 +113,17 @@
 
 - Insira o ID do usuário que deseja obter as reservas nos campos fornecidos. Exemplo de JSON:
 
+- adm
 ```json
 {
-  "user_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
+  "user_id": "1"
+}
+```
+
+- cliente 
+```json
+{
+  "user_id": "2"
 }
 ```
 
@@ -98,9 +137,17 @@
 
 - Insira o ID do usuário que deseja obter as áreas nos campos fornecidos. Exemplo de JSON:
 
+- adm
 ```json
 {
-  "user_id": "ff3be86a-5c09-4a02-a18f-94ab28e2c91b"
+  "user_id": "1"
+}
+```
+
+- cliente 
+```json
+{
+  "user_id": "2"
 }
 ```
 

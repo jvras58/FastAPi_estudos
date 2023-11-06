@@ -1,18 +1,25 @@
-from fastapi import Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database.get_db import get_db
-from fastapi import APIRouter
+
+import app.area.crud_area as crud_area
 
 # areas
 from app.area.area_schema import AreaCreate
-import app.area.crud_area as crud_area
+
+# usuario
+from app.usuario.crud_usuario import get_current_admin_user
+from app.usuario.usuario_model import Usuario
+from database.get_db import get_db
 
 router_area = APIRouter()
 
 
-
 @router_area.post('/areas')
-def create_area(area: AreaCreate, db: Session = Depends(get_db)):
+def create_area(
+    area: AreaCreate,
+    db: Session = Depends(get_db),
+    current_admin_user: Usuario = Depends(get_current_admin_user),
+):
     """
     Criar uma nova área.
 
@@ -22,8 +29,9 @@ def create_area(area: AreaCreate, db: Session = Depends(get_db)):
 
     Returns:
         Area: A área criada.
-    """  
+    """
     return crud_area.create_area(db=db, area=area)
+
 
 @router_area.get('/areas')
 def get_all_areas(db: Session = Depends(get_db)):
@@ -31,13 +39,14 @@ def get_all_areas(db: Session = Depends(get_db)):
     Visualiza todas as areas.
 
     Args:
-        
+
         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
     Returns:
         Areas: Todas as areas.
-    """  
+    """
     return crud_area.get_all(db)
+
 
 @router_area.get('/areas/nome/{nome}')
 def get_area_by_name(nome: str, db: Session = Depends(get_db)):
@@ -50,38 +59,48 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
 
     Returns:
         Area:  A área encontrada com o nome correspondente, ou None se não for encontrada.
-    """  
+    """
     db_area = crud_area.get_area_by_name(nome, db)
     if db_area is None:
-        raise HTTPException(status_code=404, detail="Area not found")
+        raise HTTPException(status_code=404, detail='Area not found')
     return db_area
 
 
 @router_area.get('/areas/{area_id}')
-def get_area(area_id: str, db: Session = Depends(get_db)):
+def get_area(
+    area_id: int,
+    db: Session = Depends(get_db),
+    current_admin_user: Usuario = Depends(get_current_admin_user),
+):
     """
     Obter uma área pelo seu ID.
 
     Args:
-        area_id (str): O ID da área a ser obtida.
+        area_id (int): O ID da área a ser obtida.
         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
     Returns:
         Area: Os detalhes da área encontrada.
-    """    
+    """
     db_area = crud_area.get_area_by_id(area_id, db)
     if db_area is None:
-        raise HTTPException(status_code=404, detail="Area not found")
+        raise HTTPException(status_code=404, detail='Area not found')
     return db_area
+
 
 # FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
 @router_area.put('/areas/{area_id}')
-def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
+def update_area(
+    area_id: int,
+    area: AreaCreate,
+    db: Session = Depends(get_db),
+    current_admin_user: Usuario = Depends(get_current_admin_user),
+):
     """
     Atualizar os detalhes de uma área.
 
     Args:
-        area_id (str): O ID da área a ser atualizada.
+        area_id (int): O ID da área a ser atualizada.
         area (AreaCreate): Os novos detalhes da área.
         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
@@ -92,16 +111,20 @@ def update_area(area_id: str, area: AreaCreate, db: Session = Depends(get_db)):
 
 
 @router_area.delete('/areas/{area_id}')
-def delete_area(area_id: str, db: Session = Depends(get_db)):
+def delete_area(
+    area_id: int,
+    db: Session = Depends(get_db),
+    current_admin_user: Usuario = Depends(get_current_admin_user),
+):
     """
     Deletar uma área.
 
     Args:
-        area_id (str): O ID da área a ser deletada.
+        area_id (int): O ID da área a ser deletada.
         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
     Returns:
         dict: Uma mensagem indicando que a área foi deletada com sucesso.
     """
     crud_area.delete_area(area_id, db)
-    return {"detail": "Área deletada com sucesso"}
+    return {'detail': 'Área deletada com sucesso'}

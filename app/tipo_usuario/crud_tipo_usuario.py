@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
 from app.usuario.usuario_model import TipoUser
 

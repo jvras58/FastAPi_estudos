@@ -1,9 +1,9 @@
-from pydantic import BaseModel
-from typing import Annotated
 from datetime import datetime
 
-class ReservationBase(BaseModel):
-    id: str
+from pydantic import BaseModel
+
+
+class ReservationCreate(BaseModel):
     valor: int
     reserva_data: datetime
     hora_inicio: datetime
@@ -11,8 +11,13 @@ class ReservationBase(BaseModel):
     justificacao: str
     reserva_tipo: str
     status: str
-    area_id: str
-    usuario_id: str
+    area_id: int
+    usuario_id: int
 
-class ReservationCreate(ReservationBase):
-    pass
+
+class ReservationBase(ReservationCreate):
+    id: int
+
+
+class ReservationList(ReservationBase):
+    Reservation: list[ReservationBase]
