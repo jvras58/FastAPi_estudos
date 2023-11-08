@@ -101,6 +101,7 @@ async def get_current_user(
         raise credentials_exception
     return user
 
+
 # função não usada por nenhum endpoint (ignorar o coverage report)
 def get_account_by_id(db: Session, user_id: int):
     """
@@ -139,6 +140,7 @@ def get_current_admin_user(
             detail='Permissão negada. Somente administradores podem acessar esta rota.',
         )
     return current_user
+
 
 # função não usada por nenhum endpoint (ignorar o coverage report)
 def is_admin(user_id: int, db: Session):
