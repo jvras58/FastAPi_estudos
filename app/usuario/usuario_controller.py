@@ -114,7 +114,10 @@ def update_user(
     Returns:
         Usuario: O usuário com informações atualizadas.
     """
-    return crud_usuario.update_user(user_id, usuario, db)
+    user = crud_usuario.update_user(user_id, usuario, db)
+    if user is None:
+        raise HTTPException(status_code=404, detail='User not found')
+    return user
 
 
 # TODO: Refatorar esta rota para não precisar pegar o id do usuario é sim o usuario autenticado muito melhor...(na vez de usar o id usar o current_user: Type = Depends(crud_usuario.get_current_user) já temos algumas rotas que fazem isso mas não sei se aqui faria sentido sei la [@router_reserva.get('/usuario/reservas') usa veja se faz sentido])
@@ -204,6 +207,7 @@ def delete_user(
     Returns:
         dict: Um dicionário indicando que o usuário foi deletado com sucesso.
     """
+    if not crud_usuario.get_user_by_id(user_id, db):
+        raise HTTPException(status_code=404, detail='Usuário não encontrado')
     if crud_usuario.delete_user_by_id(user_id, db):
         return {'detail': 'Usuário deletado com sucesso'}
-    return {'detail': 'Usuário não encontrado'}

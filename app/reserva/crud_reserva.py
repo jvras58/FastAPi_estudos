@@ -137,6 +137,7 @@ def update_reservation(
     return db_reservation
 
 
+# FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE RESERVA (IGNORAR NO COVERAGE)
 def delete_reservation1(db: Session, db_reservation: Reservation):
     """
     Exclui uma reserva existente.
@@ -170,6 +171,7 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
+# FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE RESERVA (IGNORAR NO COVERAGE)
 def define_preco_por_hora(reservation: ReservationCreate):
     """
     Calcula o preço da reserva com base nas horas de início e fim.

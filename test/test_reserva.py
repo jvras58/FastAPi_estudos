@@ -120,6 +120,55 @@ def test_create_reserva_adm(
     assert response.json()['usuario_id'] == userAdmin.id
 
 
+def test_create_reserva_adm_fail_usuario_nao_existe(
+    client, userTipoAdmin, AreaUserAdmin, tokenadmin
+):
+    reserva_data = {
+        'valor': 10,
+        'reserva_data': '2023-10-23T12:00:00',
+        'hora_inicio': '2023-10-23T14:00:00',
+        'hora_fim': '2023-10-23T16:00:00',
+        'justificacao': 'Jogo de Equipe',
+        'reserva_tipo': 'Jogo',
+        'status': 'Em análise',
+        'area_id': AreaUserAdmin.id,
+        'usuario_id': 9999,
+    }
+    response = client.post(
+        '/reservas',
+        json=reserva_data,
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.status_code == 400
+    assert (
+        response.json()['detail']
+        == 'Usuario não existe ou não está autenticado'
+    )
+
+
+def test_create_reserva_adm_fail_area_nao_existe(
+    client, userTipoAdmin, userAdmin, AreaUserAdmin, tokenadmin
+):
+    reserva_data = {
+        'valor': 10,
+        'reserva_data': '2023-10-23T12:00:00',
+        'hora_inicio': '2023-10-23T14:00:00',
+        'hora_fim': '2023-10-23T16:00:00',
+        'justificacao': 'Jogo de Equipe',
+        'reserva_tipo': 'Jogo',
+        'status': 'Em análise',
+        'area_id': 50,
+        'usuario_id': userAdmin.id,
+    }
+    response = client.post(
+        '/reservas',
+        json=reserva_data,
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.status_code == 400
+    assert response.json()['detail'] == 'Area não existe'
+
+
 def test_create_reserva_adm_fail_hora_indisponivel(
     client,
     userTipoAdmin,
@@ -180,6 +229,55 @@ def test_create_reserva_cliente(
     assert response.json()['status'] == 'Em análise'
     assert response.json()['area_id'] == AreaUserAdmin.id
     assert response.json()['usuario_id'] == userCliente.id
+
+
+def test_create_reserva_cliente_fail_usuario_nao_existe(
+    client, userTipoClient, userCliente, AreaUserAdmin, tokencliente
+):
+    reserva_data = {
+        'valor': 10,
+        'reserva_data': '2023-10-23T12:00:00',
+        'hora_inicio': '2023-10-23T14:00:00',
+        'hora_fim': '2023-10-23T16:00:00',
+        'justificacao': 'Jogo de Equipe',
+        'reserva_tipo': 'Jogo',
+        'status': 'Em análise',
+        'area_id': AreaUserAdmin.id,
+        'usuario_id': 9999,
+    }
+    response = client.post(
+        '/reservas',
+        json=reserva_data,
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 400
+    assert (
+        response.json()['detail']
+        == 'Usuario não existe ou não está autenticado'
+    )
+
+
+def test_create_reserva_cliente_fail_area_nao_existe(
+    client, userTipoClient, userCliente, AreaUserAdmin, tokencliente
+):
+    reserva_data = {
+        'valor': 10,
+        'reserva_data': '2023-10-23T12:00:00',
+        'hora_inicio': '2023-10-23T14:00:00',
+        'hora_fim': '2023-10-23T16:00:00',
+        'justificacao': 'Jogo de Equipe',
+        'reserva_tipo': 'Jogo',
+        'status': 'Em análise',
+        'area_id': 50,
+        'usuario_id': userCliente.id,
+    }
+    response = client.post(
+        '/reservas',
+        json=reserva_data,
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 400
+    assert response.json()['detail'] == 'Area não existe'
 
 
 def test_create_reserva_cliente_fail_horario_indisponivel(
@@ -286,7 +384,7 @@ def test_get_reserva_by_id(
     assert response.json()['usuario_id'] == userAdmin.id
 
 
-def test_get_reserva_by_id_fail(
+def test_get_reserva_by_id_fail_not_found(
     client, userTipoAdmin, userAdmin, AreaUserAdmin, tokenadmin
 ):
     response = client.get(
@@ -325,7 +423,7 @@ def test_update_reserva(
     assert response.status_code == 200
 
 
-def test_update_reserva_fail(
+def test_update_reserva_fail_not_found(
     client,
     userTipoAdmin,
     userAdmin,
@@ -369,7 +467,7 @@ def test_delete_reserva(
     assert response.json() == {'detail': 'Reserva deletada com sucesso'}
 
 
-def test_delete_reserva_fail(
+def test_delete_reserva_fail_reserva_not_found(
     client,
     userTipoAdmin,
     userAdmin,
@@ -402,7 +500,7 @@ def test_get_reservas_usuario(
     assert response.json()[0]['valor'] == 10
 
 
-def test_get_reservas_usuario_fail(
+def test_get_reservas_usuario_fail_Not_authenticated(
     client,
     userTipoClient,
     userCliente,
@@ -413,3 +511,104 @@ def test_get_reservas_usuario_fail(
     response = client.get('/usuario/reservas')
     assert response.status_code == 401
     assert response.json()['detail'] == 'Not authenticated'
+
+
+def test_get_reservas_id_usuario_cliente(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+    AreaUserAdmin,
+    ReservaUserCliente,
+):
+    response = client.get(
+        f'/usuario/reservas/{ReservaUserCliente.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 200
+    assert len(response.json()) == 10
+    assert response.json()['id'] == 1
+    assert response.json()['valor'] == 10
+
+
+def test_get_reservas_id_usuario_cliente_fail_not_authenticated(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+    AreaUserAdmin,
+    ReservaUserCliente,
+):
+    response = client.get(
+        f'/usuario/reservas/{ReservaUserCliente.id}',
+    )
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Not authenticated'
+
+
+def test_get_reservas_id_usuario_cliente_fail_not_found(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+    AreaUserAdmin,
+    ReservaUserCliente,
+):
+    response = client.get(
+        '/usuario/reservas/3',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Reservation not found'
+
+
+def test_get_reservas_id_usuario_admin(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    tokenadmin,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+):
+    response = client.get(
+        f'/usuario/reservas/{ReservaUserAdmin.id}',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.status_code == 200
+    assert len(response.json()) == 10
+    assert response.json()['id'] == 1
+    assert response.json()['valor'] == 10
+
+
+# aqui
+
+
+def test_get_reservas_id_usuario_adm_fail_not_authenticated(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    tokenadmin,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+):
+    response = client.get(
+        f'/usuario/reservas/{ReservaUserAdmin.id}',
+    )
+    assert response.status_code == 401
+    assert response.json()['detail'] == 'Not authenticated'
+
+
+def test_get_reservas_id_usuario_adm_fail_not_found(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    tokenadmin,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+):
+    response = client.get(
+        '/usuario/reservas/3',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Reservation not found'

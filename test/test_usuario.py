@@ -208,10 +208,18 @@ def test_get_user_admin(client, userTipoAdmin, userAdmin):
     assert response.json()['email'] == userAdmin.email
 
 
-def test_get_user_admin_fail(client, userTipoAdmin, userAdmin):
+def test_get_user_admin_fail_usuario_não_encontrado(
+    client, userTipoAdmin, userAdmin
+):
     response = client.get('/usuarios/20')
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_get_user_admin_reservas_vazias(client, userTipoAdmin, userAdmin):
+    response = client.get(f'/usuarios/{userAdmin.id}/reservas')
+    assert response.status_code == 200
+    assert response.json() == [[], 0]
 
 
 def test_get_user_cliente(client, userTipoClient, userCliente):
@@ -221,10 +229,18 @@ def test_get_user_cliente(client, userTipoClient, userCliente):
     assert response.json()['email'] == userCliente.email
 
 
-def test_get_user_cliente_fail(client, userTipoClient, userCliente):
+def test_get_user_cliente_fail_usuario_nao_encontrado(
+    client, userTipoClient, userCliente
+):
     response = client.get('/usuarios/10')
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_get_user_admin_fail_reservas_vazias(client, userTipoAdmin, userAdmin):
+    response = client.get(f'/usuarios/{userAdmin.id}/reservas')
+    assert response.status_code == 200
+    assert response.json() == [[], 0]
 
 
 def test_update_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -244,7 +260,9 @@ def test_update_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     assert response_update_user.json()['email'] == usuario_data_update['email']
 
 
-def test_update_user_adm_fail(client, userTipoAdmin, userAdmin, tokenadmin):
+def test_update_user_adm_fail_usuario_nao_encontrado(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
     usuario_data_update = {
         'nome': 'adm test 1',
         'tipo_id': 1,
@@ -258,6 +276,17 @@ def test_update_user_adm_fail(client, userTipoAdmin, userAdmin, tokenadmin):
     )
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_update_user_adm_fail_user_not_found(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
+    response_up_user = client.get(
+        '/usuarios/10',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response_up_user.status_code == 404
+    assert response_up_user.json() == {'detail': 'Usuário não encontrado'}
 
 
 def test_update_user_cliente(
@@ -300,7 +329,6 @@ def test_update_user_cliente_fail(
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
 
-# 1
 def test_delete_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     response_delete_user = client.delete(
         '/usuario/delete', headers={'Authorization': f'Bearer {tokenadmin}'}
@@ -311,7 +339,9 @@ def test_delete_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     }
 
 
-def test_delete_user_adm_fail(client, userTipoAdmin, userAdmin, tokenadmin):
+def test_delete_user_adm_fail_not_auth(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
     response_delete_user = client.delete(
         '/usuario/delete',
     )
@@ -329,6 +359,18 @@ def test_delete_user_id_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     assert response_delete_user.json() == {
         'detail': 'Usuário deletado com sucesso'
     }
+
+
+def test_delete_user_id_adm_nao_encontrado(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
+    user_id = 50
+    response_delete_user = client.delete(
+        f'/usuarios/delete/{user_id}',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response_delete_user.status_code == 404
+    assert response_delete_user.json() == {'detail': 'Usuário não encontrado'}
 
 
 def test_delete_user_id_adm_fail(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -354,7 +396,19 @@ def test_delete_user_id_cliente(
     }
 
 
-def test_delete_user_id_cliente_fail(
+def test_delete_user_id_cliente_nao_encontrado(
+    client, userTipoClient, userCliente, tokencliente
+):
+    user_id = 50
+    response_delete_user = client.delete(
+        f'/usuarios/delete/{user_id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response_delete_user.status_code == 404
+    assert response_delete_user.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_delete_user_id_cliente_fail_not_auth(
     client, userTipoClient, userCliente, tokencliente
 ):
     user_id = userCliente.id
@@ -377,9 +431,7 @@ def test_delete_user_cliente(
     }
 
 
-def test_delete_user_cliente_fail(
-    client, userTipoClient, userCliente, tokencliente
-):
+def test_delete_user_user_fail_not_auth(client, userTipoClient, userCliente):
     response_delete_user = client.delete(
         '/usuario/delete',
     )
@@ -449,7 +501,7 @@ def test_get_user_reservations_adm(
     assert response.json()[0][0]['area_id'] == ReservaUserAdmin.area_id
 
 
-def test_get_user_reservations_adm_fail(
+def test_get_user_reservations_adm_fail_vazio(
     client,
     userTipoAdmin,
     userAdmin,
@@ -469,7 +521,7 @@ def test_get_user_reservations_cliente(
     assert response.json()[0][0]['area_id'] == ReservaUserCliente.area_id
 
 
-def test_get_user_reservations_cliente_fail(
+def test_get_user_reservations_cliente_fail_vazio(
     client,
     userTipoClient,
     userCliente,
