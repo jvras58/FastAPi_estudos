@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 
 from app.area.area_model import Area
 from app.area.area_schema import AreaCreate
-from app.usuario.crud_usuario import get_current_admin_user, get_current_user, is_admin
-from app.usuario.usuario_model import Usuario
 from database.get_db import get_db
 
 
@@ -52,9 +50,7 @@ def get_area_by_id(area_id: int, db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.id == area_id).first()
 
 
-def create_area(db: Session, area: AreaCreate, 
-                #current_user: Usuario = Depends(get_current_admin_user)
-                ):
+def create_area(db: Session, area: AreaCreate):
     """
     Cria uma nova área no banco de dados.
 
@@ -71,14 +67,8 @@ def create_area(db: Session, area: AreaCreate,
     Raises:
         HTTPException: Se o usuário não for encontrado, não for um administrador ou se a área já existir.
     """
-    # Verifica se o usuario autenticado é do tipo adm
-    # por que não ta pegando ?? AttributeError: 'Depends' object has no attribute 'id' no current_adm eu consigo pegar o id mas aqui não...
-    # if  current_user.id != 1:
-    #     raise HTTPException(
-    #         status_code=403,
-    #         detail='O usuário autenticado não é um administrador.'
-    #     )
-    
+    # TODO: função que verifica se o usuario autenticado é do tipo adm (só pra testar mesmo já que marlos disse que se ele chegou até aqui não vai adiantar de nada kkk)
+
     # Verifica se a área já existe pelo nome
     area_exist = get_area_by_name(area.nome, db)
     if area_exist is not None:
@@ -90,33 +80,7 @@ def create_area(db: Session, area: AreaCreate,
     db.refresh(db_area)
     return db_area
 
-# FIXME: ESSE def NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {}
-# def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
-#     """
-#     Atualiza uma área existente.
 
-#     Args:
-#         area_id (int): ID da área a ser atualizada.
-#         area (AreaCreate): Novas informações para a área.
-#         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
-
-#     Raises:
-#         HTTPException: Retorna um erro HTTP 404 se a área não for encontrada.
-
-#     Returns:
-#         Area: A área atualizada.
-#     """
-#     db_area = get_area_by_id(area_id, db)
-#     if not db_area:
-#         raise HTTPException(status_code=404, detail='Area not found')
-#     update_data = area.model_dump()
-#     db_area.__dict__.update(
-#         update_data
-#     )  # Atualiza os atributos com os dados de update_data que vem do schema de area
-#     db.commit()
-#     return db_area
-
-# CHECKING : CHECAR SE ESSA FUNÇÃO ESTA FUNCIONANDO CORRETAMENTE É APRESENTANDO OS DADO NO JSON DO SWEGGER DO FASTAPI (ERRO DA FUNÇÃO ACIMA)
 def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
     """
     Atualiza os detalhes de um usuário.
@@ -127,17 +91,15 @@ def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
         user_update (UsuarioCreate): Os novos detalhes do usuário.
 
     Returns:
-        Usuario: O usuário atualizado.
+        Usuario: a area atualizado.
     """
     db_area = get_area_by_id(area_id, db)
     if not db_area:
         raise HTTPException(status_code=404, detail='Area not found')
-    # itens é um método de dicionário que retorna uma lista de tuplas, onde cada tupla contém um par chave-valor(no nosso caso dado-valor[ex: {'nome': 'Novo Nome'}]) do dicionário.
     for dado, valor in area.model_dump().items():
-        # O setattr é uma função embutida em Python que define o valor de um atributo de um objeto. Neste caso, estamos configurando o atributo key (que é o nome do campo) do objeto user para ter o valor value.
-        setattr(area, dado, valor)
+        setattr(db_area, dado, valor)
     db.commit()
-    db.refresh(area)
+    db.refresh(db_area)
     return db_area
 
 

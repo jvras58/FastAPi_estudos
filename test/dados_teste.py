@@ -47,27 +47,25 @@ class DadosTeste_area:
     @staticmethod
     def area_id_adm():
         return {
-            'id': 5,
             'nome': 'Quadra de volei',
             'descricao': 'Uma quadra de volei espaçosa',
             'iluminacao': 'LED',
             'tipo_piso': 'Liso',
             'covered': 'Sim',
             'foto_url': 'https://example.com/quadra_volei.jpg',
-            'usuario_id': 3,
+            'usuario_id': 1,
         }
 
     @staticmethod
     def area_id_cliente():
         return {
-            'id': 6,
             'nome': 'Quadra de volei2',
             'descricao': 'Uma quadra de volei espaçosa2',
             'iluminacao': 'LED1',
             'tipo_piso': 'Liso2',
             'covered': 'Sim',
             'foto_url': 'https://example.com/quadra_volei.jpg',
-            'usuario_id': 4,
+            'usuario_id': 1,
         }
 
 
@@ -75,7 +73,6 @@ class DadosTeste_reserva:
     @staticmethod
     def reserva_id_adm():
         return {
-            'id': 7,
             'valor': 10,
             'reserva_data': '2023-10-23T12:00:00',
             'hora_inicio': '2023-10-23T15:00:00',
@@ -83,8 +80,8 @@ class DadosTeste_reserva:
             'justificacao': 'Jogo de Equipe',
             'reserva_tipo': 'Jogo',
             'status': 'Em análise',
-            'area_id': 5,
-            'usuario_id': 3,
+            'area_id': 1,
+            'usuario_id': 1,
         }
 
     @staticmethod

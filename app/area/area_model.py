@@ -1,5 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
 from database.base import Base
@@ -16,6 +15,4 @@ class Area(Base):
     covered = Column(String)
     foto_url = Column(String)
 
-    # usuario_id = Column(Integer, ForeignKey('usuario.id'), nullable=True)
-    # usuario = relationship('Usuario', back_populates='areas')
     reservations = relationship('Reservation', back_populates='areas')

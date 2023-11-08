@@ -23,6 +23,3 @@ class Usuario(Base):
 
     tipo = relationship('TipoUser', back_populates='usuarios')
     reservations = relationship('Reservation', back_populates='usuario')
-
-
-#   areas = relationship('Area', back_populates='usuario')

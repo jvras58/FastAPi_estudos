@@ -6,9 +6,6 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 import app.security.auth as auth
-
-# from app.area.area_model import Area
-from app.reserva.reserva_model import Reservation
 from app.usuario.usuario_model import Usuario
 from app.usuario.usuario_schemas import UsuarioCreate
 from database.get_db import SessionLocal, get_db
@@ -104,7 +101,7 @@ async def get_current_user(
         raise credentials_exception
     return user
 
-
+# função não usada por nenhum endpoint (ignorar o coverage report)
 def get_account_by_id(db: Session, user_id: int):
     """
     Obtém uma conta pelo seu ID.
@@ -143,7 +140,7 @@ def get_current_admin_user(
         )
     return current_user
 
-
+# função não usada por nenhum endpoint (ignorar o coverage report)
 def is_admin(user_id: int, db: Session):
     """
     Verifica se o usuário possui privilégios de administrador.
@@ -168,41 +165,6 @@ def is_admin(user_id: int, db: Session):
 
 
 def get_user_reservations(user_id: int, db: Session):
-    """
-    Obtém o número de reservas associadas a uma conta pelo seu ID.
-
-    Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID do usuário.
-
-    Returns:
-        int: O número de reservas associadas à conta.
-    """
-    return (
-        db.query(Reservation).filter(Reservation.usuario_id == user_id).count()
-    )
-
-
-# TODO: PODE SER UMA LISTA COM AS RESERVAS TBM ISSO QUEM VAI ESCOLHER É O FRONTER MAS POR ENQUANTO VOU DEIXAR A QUANTIDADE MSM
-def get_user_reservations1(user_id: int, db: Session):
-    """
-     Obtém as reservas associadas a um usuário pelo seu ID.
-
-    Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID do usuário.
-
-    Returns:
-        List[reservas]: Lista de reservas associadas ao usuário.
-    """
-    user = get_user_by_id(user_id, db)
-    if user:
-        return user.reservations
-    return None
-
-
-# #TEST: verificar se está funcionando como esperado
-def get_user_areas1(user_id: int, db: Session):
     """
     Obtém as áreas associadas a um usuário pelo seu ID.
 
@@ -280,6 +242,7 @@ def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
     for dado, valor in usuario.model_dump().items():
         # O setattr é uma função embutida em Python que define o valor de um atributo de um objeto. Neste caso, estamos configurando o atributo key (que é o nome do campo) do objeto user para ter o valor value.
         setattr(user, dado, valor)
+    user.senha = auth.get_password_hash(usuario.senha)
     db.commit()
     db.refresh(user)
     return user

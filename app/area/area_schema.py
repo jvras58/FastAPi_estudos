@@ -8,9 +8,6 @@ class AreaCreate(BaseModel):
     tipo_piso: str
     covered: str
     foto_url: str
-    # usuario_id: int
-
-
 
 
 class AreaBase(AreaCreate):

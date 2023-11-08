@@ -27,7 +27,6 @@ def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     Returns:
         Reservation: A reserva criada.
     """
-    # return crud_reserva.create_reservation(db=db, reservation=reserva)
     response = crud_reserva.create_reservation(db=db, reservation=reserva)
     if response is None:
         raise HTTPException(

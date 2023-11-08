@@ -97,7 +97,7 @@ def create_reservation(db: Session, reservation: ReservationCreate):
         return None
 
     db_reservation = Reservation(**reservation.model_dump())
-    valor = get_price(reservation)
+    valor = define_preco_por_hora(reservation)
     status = 'Em análise'
     db_reservation.valor = valor
     db_reservation.status = status
@@ -170,7 +170,7 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
-def get_price(reservation: ReservationCreate):
+def define_preco_por_hora(reservation: ReservationCreate):
     """
     Calcula o preço da reserva com base nas horas de início e fim.
 

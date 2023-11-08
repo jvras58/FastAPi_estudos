@@ -12,9 +12,6 @@ from app.security.auth import (
     create_access_token,
     verify_password,
 )
-from app.usuario.usuario_model import Usuario
-
-# user
 from app.usuario.usuario_schemas import Token, UsuarioCreate
 from database.get_db import get_db
 
@@ -99,7 +96,10 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 # TODO: Refatorar esta rota para não precisar pegar o id do usuario é sim o usuario autenticado muito melhor...(na vez de usar o id usar o current_user: Type = Depends(crud_usuario.get_current_user) já temos algumas rotas que fazem isso mas não sei se aqui faria sentido sei la [@router_reserva.get('/usuario/reservas') usa veja se faz sentido])
 @router_usuario.put('/usuarios/{user_id}')
 def update_user(
-    user_id: int, usuario: UsuarioCreate, db: Session = Depends(get_db)
+    user_id: int,
+    usuario: UsuarioCreate,
+    db: Session = Depends(get_db),
+    current_user: Type = Depends(crud_usuario.get_current_user),
 ):
     """Obtém um usuário pelo seu ID.
 
@@ -107,7 +107,7 @@ def update_user(
         user_id (int): ID do usuário.
         usuario (UsuarioCreate): Os dados do usuário a ser atualizado.
         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
-
+        current_user (Type, optional): O usuário atual obtido a partir do token. obtido via Depends(crud_user.get_current_user).
     Raises:
         HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
 
@@ -130,28 +130,6 @@ def get_user_reservations(user_id: int, db: Session = Depends(get_db)):
         List[reservas]: Lista de reservas associadas ao usuário.
     """
     return crud_usuario.get_user_reservations(user_id, db)
-
-
-# TODO: Refatorar esta rota para não precisar pegar o id do usuario é sim o usuario autenticado muito melhor...(na vez de usar o id usar o current_user: Type = Depends(crud_usuario.get_current_user) já temos algumas rotas que fazem isso mas não sei se aqui faria sentido sei la [@router_reserva.get('/usuario/reservas') usa veja se faz sentido])
-@router_usuario.get('/usuarios/{user_id}/areas')
-def get_account_areas(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_admin_user: Usuario = Depends(crud_usuario.get_current_admin_user),
-):
-    """
-    Obtém áreas associadas a uma conta pelo seu ID.
-
-    Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID do usuário.
-        current_admin_user (Usuario): O usuário autenticado com permissões de administrador.
-
-    Returns:
-        int: O número de áreas associadas à conta.
-        List[areas]: Lista de areas associadas ao usuário.
-    """
-    return crud_usuario.get_account_areas(user_id, db)
 
 
 @router_usuario.put('/usuario/update_senha')
@@ -210,9 +188,13 @@ def delete(
     return {'detail': 'Usuário deletado com sucesso'}
 
 
-# TODO: essa rota vai precisar de proteção no futuro para so usuarios adm poderem apagar um usuario que quiser
+# TODO: melhorar o codigo para sempre perguntar se o id que esta acessando a rota é o id do usuario autenticado se sim pode prosseguir senão verificar se é adm se for ele consegue apagar se não so lamentos
 @router_usuario.delete('/usuarios/delete/{user_id}')
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: Type = Depends(crud_usuario.get_current_user),
+):
     """Obtém um usuário pelo seu ID.
 
     Args:

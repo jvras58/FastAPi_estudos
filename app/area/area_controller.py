@@ -88,7 +88,6 @@ def get_area(
     return db_area
 
 
-# FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ ENFIM COISAS PRA VER DEPOIS AMÉM?)
 @router_area.put('/areas/{area_id}')
 def update_area(
     area_id: int,
