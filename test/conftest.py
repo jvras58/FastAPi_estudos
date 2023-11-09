@@ -62,6 +62,13 @@ def session():
 
 @event.listens_for(Engine, 'connect')
 def set_sqlite_pragma(dbapi_connection, connection_record):
+    """
+    Define o pragma de chaves estrangeiras para conexões de banco de dados SQLite.
+
+    Args:
+        dbapi_connection: O objeto de conexão com o banco de dados.
+        connection_record: O objeto de registro de conexão.
+    """
     cursor = dbapi_connection.cursor()
     cursor.execute('PRAGMA foreign_keys=ON')
     cursor.close()
@@ -162,6 +169,16 @@ def userCliente(session):
 
 @pytest.fixture
 def tokenadmin(client, userAdmin):
+    """
+    cria uma ingessão que efetua login no usuário administrador e retorna um token de acesso.
+
+    Args:
+        client: o cliente de teste.
+        userAdmin: O usuário administrador.
+
+    Returns:
+        O token de acesso como uma string.
+    """
     response = client.post(
         '/token',
         data={
@@ -174,6 +191,16 @@ def tokenadmin(client, userAdmin):
 
 @pytest.fixture
 def tokencliente(client, userCliente):
+    """
+    cria uma ingessão que efetua login no usuário cliente e retorna um token de acesso.
+
+    Args:
+        client: o cliente de teste.
+        userCliente: O usuário cliente.
+
+    Returns:
+        O token de acesso como uma string.
+    """
     response = client.post(
         '/token',
         data={

@@ -68,6 +68,7 @@ def get_reserva(reservation_id: int, db: Session = Depends(get_db)):
     return db_reservation
 
 
+# FIXME: VERIFICAR OQ ESTÁ OCORRENDO COM O ENDPOINT POIS ELE NÃO ESTA MOSTRANDO AS ATUALIZAÇÕES DE RESERVA
 @router_reserva.put('/reservas/{reservation_id}')
 def update_reserva(
     reservation_id: int,

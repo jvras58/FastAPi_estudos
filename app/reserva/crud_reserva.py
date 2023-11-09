@@ -109,6 +109,7 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     return db_reservation
 
 
+# FIXME: VERIFICAR OQ ESTÁ OCORRENDO COM O ENDPOINT POIS ELE NÃO ESTA MOSTRANDO AS ATUALIZAÇÕES DE RESERVA
 def update_reservation(
     reservation_id: int,
     reservation: ReservationCreate,
