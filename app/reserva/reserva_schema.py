@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 
 class ReservationCreate(BaseModel):
-    valor: int
     reserva_data: datetime
     hora_inicio: datetime
     hora_fim: datetime
@@ -17,6 +16,7 @@ class ReservationCreate(BaseModel):
 
 class ReservationBase(ReservationCreate):
     id: int
+    valor: int
 
 
 class ReservationList(ReservationBase):
