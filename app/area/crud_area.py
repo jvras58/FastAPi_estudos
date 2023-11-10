@@ -1,4 +1,4 @@
-from fastapi import Depends  # , HTTPException
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.area.area_model import Area
@@ -77,8 +77,6 @@ def create_area(db: Session, area: AreaCreate):
     area_exist = get_area_by_name(area.nome, db)
     if area_exist is not None:
         raise area_existente_exception()
-        # raise HTTPException(status_code=400, detail='Área já existe')
-
     db_area = Area(**area.model_dump())
     db.add(db_area)
     db.commit()
@@ -101,7 +99,6 @@ def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
     db_area = get_area_by_id(area_id, db)
     if not db_area:
         raise area_not_found_exception()
-        # raise HTTPException(status_code=404, detail='Area not found')
     for dado, valor in area.model_dump().items():
         setattr(db_area, dado, valor)
     db.commit()
@@ -123,6 +120,5 @@ def delete_area(area_id: int, db: Session = Depends(get_db)):
     db_area = get_area_by_id(area_id, db)
     if not db_area:
         raise area_not_found_exception()
-        # raise HTTPException(status_code=404, detail='Area not found')
     db.delete(db_area)
     db.commit()

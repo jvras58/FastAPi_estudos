@@ -1,8 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
-
-# from fastapi import status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -12,6 +10,7 @@ from app.Exceptions.exceptions import (
     credentials_exception,
     is_not_adm_exception,
     is_not_validation_adm_exception,
+    user_not_found_exception,
 )
 from app.usuario.usuario_model import Usuario
 from app.usuario.usuario_schemas import UsuarioCreate
@@ -235,10 +234,8 @@ def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
     """
     user = get_user_by_id(user_id, db)
     if not user:
-        raise HTTPException(status_code=404, detail='User not found')
-    # itens é um método de dicionário que retorna uma lista de tuplas, onde cada tupla contém um par chave-valor(no nosso caso dado-valor[ex: {'nome': 'Novo Nome'}]) do dicionário.
+        raise user_not_found_exception()
     for dado, valor in usuario.model_dump().items():
-        # O setattr é uma função embutida em Python que define o valor de um atributo de um objeto. Neste caso, estamos configurando o atributo key (que é o nome do campo) do objeto user para ter o valor value.
         setattr(user, dado, valor)
     user.senha = auth.get_password_hash(usuario.senha)
     db.commit()

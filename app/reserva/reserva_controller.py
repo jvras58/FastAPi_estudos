@@ -1,18 +1,14 @@
 from typing import Type
 
-from fastapi import APIRouter, Depends  # , HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 import app.reserva.crud_reserva as crud_reserva
-
-# user
 import app.usuario.crud_usuario as crud_usuario
 from app.Exceptions.exceptions import (
     reserva_choque_horario_exception,
     reserva_nao_encontrada_exception,
 )
-
-# reservas
 from app.reserva.reserva_schema import ReservationCreate
 from database.get_db import get_db
 
@@ -34,9 +30,6 @@ def create_reserva(reserva: ReservationCreate, db: Session = Depends(get_db)):
     response = crud_reserva.create_reservation(db=db, reservation=reserva)
     if response is None:
         raise reserva_choque_horario_exception()
-        # raise HTTPException(
-        #     status_code=400, detail='Horário indiponível para essa Área'
-        # )
     return response
 
 
@@ -70,11 +63,9 @@ def get_reserva(reservation_id: int, db: Session = Depends(get_db)):
     db_reservation = crud_reserva.get_reservation_by_id(reservation_id, db)
     if db_reservation is None:
         raise reserva_nao_encontrada_exception()
-        # raise HTTPException(status_code=404, detail='Reservation not found')
     return db_reservation
 
 
-# FIXME: VERIFICAR OQ ESTÁ OCORRENDO COM O ENDPOINT POIS ELE NÃO ESTA MOSTRANDO AS ATUALIZAÇÕES DE RESERVA
 @router_reserva.put('/reservas/{reservation_id}')
 def update_reserva(
     reservation_id: int,
@@ -152,5 +143,4 @@ def get_reserva_usuario(
     db_reservation = crud_reserva.get_reservation_by_id(reservation_id, db)
     if db_reservation is None or db_reservation.usuario_id != current_user.id:
         raise reserva_nao_encontrada_exception()
-        # raise HTTPException(status_code=404, detail='Reservation not found')
     return db_reservation

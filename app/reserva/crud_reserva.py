@@ -1,4 +1,4 @@
-from fastapi import Depends  # , HTTPException
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.area.crud_area import get_area_by_id
@@ -74,16 +74,11 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     user = get_user_by_id(reservation.usuario_id, db)
     if not user:
         raise usuario_nao_encontrado_ou_nao_autenticado_exception()
-        # raise HTTPException(
-        #     status_code=400,
-        #     detail='Usuário não encontrado ou não autenticado',
-        # )
 
     # Verifica se a área existe
     area = get_area_by_id(reservation.area_id, db)
     if not area:
         raise area_nao_encontrada_exception()
-        # raise HTTPException(status_code=400, detail='Area não existe')
 
     # Verificar se há conflito de horários
     inicio = reservation.hora_inicio
@@ -116,7 +111,6 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     return db_reservation
 
 
-# FIXME: VERIFICAR OQ ESTÁ OCORRENDO COM O ENDPOINT POIS ELE NÃO ESTA MOSTRANDO AS ATUALIZAÇÕES DE RESERVA
 def update_reservation(
     reservation_id: int,
     reservation: ReservationCreate,
@@ -139,9 +133,8 @@ def update_reservation(
     db_reservation = get_reservation_by_id(reservation_id, db)
     if not db_reservation:
         raise reserva_nao_encontrada_exception()
-        # raise HTTPException(status_code=404, detail='Reservation not found')
-    for key, value in reservation.model_dump().items():
-        setattr(db_reservation, key, value)
+    for dado, valor in reservation.model_dump().items():
+        setattr(db_reservation, dado, valor)
     db_reservation.valor = define_preco_por_hora(reservation)
     db.commit()
     db.refresh(db_reservation)
@@ -178,7 +171,6 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     db_reserva = get_reservation_by_id(reservation_id, db)
     if not db_reserva:
         raise reserva_nao_encontrada_exception()
-        # raise HTTPException(status_code=404, detail='reserva not found')
     db.delete(db_reserva)
     db.commit()
 

@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.base import Base
 
@@ -7,8 +7,8 @@ from database.base import Base
 class TipoUser(Base):
     __tablename__ = 'tipouser'
 
-    id = Column(Integer, primary_key=True, index=True)
-    tipo = Column(String(200))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tipo: Mapped[str] = mapped_column(String(200))
     usuarios = relationship('Usuario', back_populates='tipo')
 
 
