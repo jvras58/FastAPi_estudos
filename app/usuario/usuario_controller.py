@@ -6,6 +6,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 import app.usuario.crud_usuario as crud_usuario
+from app.Exceptions.exceptions import (
+    senha_antiga_incorreta_exception,
+    senha_vazia_exception,
+    user_not_found1_exception,
+    user_not_found_exception,
+)
 from app.security.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate,
@@ -116,7 +122,9 @@ def update_user(
     """
     user = crud_usuario.update_user(user_id, usuario, db)
     if user is None:
-        raise HTTPException(status_code=404, detail='User not found')
+        # TODO: PERGUNTAR a marlos se isso é uma boa pratica ou se é melhor usar o raise dentro das rotas
+        # raise HTTPException(status_code=404, detail='User not found')
+        raise user_not_found_exception()
     return user
 
 
@@ -159,15 +167,18 @@ def update_senha(
         HTTPException(400): Se a nova senha for vazia.
     """
     if not verify_password(old_password, current_user.senha):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Senha antiga incorreta',
-        )
+        # TODO: PERGUNTAR a marlos se isso é uma boa pratica ou se é melhor usar o raise dentro das rotas
+        # raise HTTPException(
+        #     status_code=status.HTTP_401_UNAUTHORIZED,
+        #     detail='Senha antiga incorreta',
+        # )
+        raise senha_antiga_incorreta_exception()
     if not new_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Nova senha não pode ser vazia',
-        )
+        # raise HTTPException(
+        #     status_code=status.HTTP_400_BAD_REQUEST,
+        #     detail='Nova senha não pode ser vazia',
+        # )
+        raise senha_vazia_exception()
     crud_usuario.update_user_password(db, current_user, new_password)
     return {'detail': 'Senha atualizada com sucesso'}
 
@@ -208,6 +219,8 @@ def delete_user(
         dict: Um dicionário indicando que o usuário foi deletado com sucesso.
     """
     if not crud_usuario.get_user_by_id(user_id, db):
-        raise HTTPException(status_code=404, detail='Usuário não encontrado')
+        # TODO: PERGUNTAR a marlos se isso é uma boa pratica ou se é melhor usar o raise dentro das rotas
+        raise user_not_found1_exception()
+        # raise HTTPException(status_code=404, detail='Usuário não encontrado')
     if crud_usuario.delete_user_by_id(user_id, db):
         return {'detail': 'Usuário deletado com sucesso'}

@@ -1,7 +1,12 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends  # , HTTPException
 from sqlalchemy.orm import Session
 
 from app.area.crud_area import get_area_by_id
+from app.Exceptions.exceptions import (
+    area_nao_encontrada_exception,
+    reserva_nao_encontrada_exception,
+    usuario_nao_encontrado_ou_nao_autenticado_exception,
+)
 from app.reserva.reserva_model import Reservation
 from app.reserva.reserva_schema import ReservationCreate
 from app.usuario.crud_usuario import get_user_by_id
@@ -68,15 +73,17 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     # Verifica se o usuário existe
     user = get_user_by_id(reservation.usuario_id, db)
     if not user:
-        raise HTTPException(
-            status_code=400,
-            detail='Usuario não existe ou não está autenticado',
-        )
+        raise usuario_nao_encontrado_ou_nao_autenticado_exception()
+        # raise HTTPException(
+        #     status_code=400,
+        #     detail='Usuário não encontrado ou não autenticado',
+        # )
 
     # Verifica se a área existe
     area = get_area_by_id(reservation.area_id, db)
     if not area:
-        raise HTTPException(status_code=400, detail='Area não existe')
+        raise area_nao_encontrada_exception()
+        # raise HTTPException(status_code=400, detail='Area não existe')
 
     # Verificar se há conflito de horários
     inicio = reservation.hora_inicio
@@ -131,10 +138,13 @@ def update_reservation(
     """
     db_reservation = get_reservation_by_id(reservation_id, db)
     if not db_reservation:
-        raise HTTPException(status_code=404, detail='Reservation not found')
+        raise reserva_nao_encontrada_exception()
+        # raise HTTPException(status_code=404, detail='Reservation not found')
     for key, value in reservation.model_dump().items():
         setattr(db_reservation, key, value)
+    db_reservation.valor = define_preco_por_hora(reservation)
     db.commit()
+    db.refresh(db_reservation)
     return db_reservation
 
 
@@ -167,7 +177,8 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     """
     db_reserva = get_reservation_by_id(reservation_id, db)
     if not db_reserva:
-        raise HTTPException(status_code=404, detail='reserva not found')
+        raise reserva_nao_encontrada_exception()
+        # raise HTTPException(status_code=404, detail='reserva not found')
     db.delete(db_reserva)
     db.commit()
 

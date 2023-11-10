@@ -187,7 +187,7 @@ def test_create_reserva_adm_fail_usuario_nao_existe(
     assert response.status_code == 400
     assert (
         response.json()['detail']
-        == 'Usuario não existe ou não está autenticado'
+        == 'Usuário não encontrado ou não autenticado'
     )
 
 
@@ -346,7 +346,7 @@ def test_create_reserva_cliente_fail_usuario_nao_existe(
     assert response.status_code == 400
     assert (
         response.json()['detail']
-        == 'Usuario não existe ou não está autenticado'
+        == 'Usuário não encontrado ou não autenticado'
     )
 
 
@@ -599,7 +599,6 @@ def test_get_reserva_adm_by_id_fail_not_found(
     assert response.json()['detail'] == 'Reservation not found'
 
 
-# FIXME: verificar o porque a rota do endpoint de update esta me retornando nada nesse update (como ele é 95% parecido com area que o teste de update dele esta funcionando....)
 def test_update_reserva_adm(
     client,
     userTipoAdmin,
@@ -636,8 +635,16 @@ def test_update_reserva_adm(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    # print(response.json())
     assert response.status_code == 200
+    assert response.json()['valor'] == 20
+    assert response.json()['reserva_data'] == '2023-11-23T12:00:00'
+    assert response.json()['hora_inicio'] == '2023-11-23T14:00:00'
+    assert response.json()['hora_fim'] == '2023-11-23T16:00:00'
+    assert response.json()['justificacao'] == 'Jogo de Equipe 2'
+    assert response.json()['reserva_tipo'] == 'Jogo 2'
+    assert response.json()['status'] == 'Em análise'
+    assert response.json()['area_id'] == AreaUserAdmin.id
+    assert response.json()['usuario_id'] == userAdmin.id
 
 
 def test_update_reserva_adm_fail_not_found(
@@ -714,8 +721,16 @@ def test_update_reserva_cliente(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
-    # print(response.json())
     assert response.status_code == 200
+    assert response.json()['valor'] == 20
+    assert response.json()['reserva_data'] == '2023-11-23T12:00:00'
+    assert response.json()['hora_inicio'] == '2023-11-23T14:00:00'
+    assert response.json()['hora_fim'] == '2023-11-23T16:00:00'
+    assert response.json()['justificacao'] == 'Jogo de Equipe 2'
+    assert response.json()['reserva_tipo'] == 'Jogo 2'
+    assert response.json()['status'] == 'Em análise'
+    assert response.json()['area_id'] == AreaUserAdmin.id
+    assert response.json()['usuario_id'] == userCliente.id
 
 
 def test_update_reserva_cliente_fail_not_found(
@@ -806,7 +821,7 @@ def test_delete_reserva_adm_fail_reserva_not_found(
         '/reservas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'reserva not found'
+    assert response.json()['detail'] == 'Reservation not found'
 
 
 def test_get_reservas_usuario_cliente(

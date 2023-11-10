@@ -26,7 +26,7 @@ uvicorn app.main:app --reload
 
 - link do servidor: http://127.0.0.1:8000/
 
-# Etapas para testar rotas usando o swagger do FastApi:
+# Etapas para testar rotas usando o swegger do FastApi:
 
 1. Garanta que o servidor esteja rodando:
 
@@ -38,8 +38,7 @@ uvicorn app.main:app --reload
    4. [Para testar as rotas de Reserva](test/swagger/reserva.md)
 
 
-
----
-
 > [!WARNING]
 > FIXME: (ERRO expression 'TipoUser' failed to locate a name ('TipoUser'))
+
+---

@@ -17,7 +17,13 @@ from app.usuario.usuario_controller import router_usuario as user_control
 
 # uvicorn app.main:app --reload  <-- inicia o servidor
 
-app = FastAPI()
+app = FastAPI(
+    title='Reservations - API',
+    description='Applicação backend de uma API para gerenciamento de reservas de áreas.',
+    summary='Aplicação desenvolvida para estudos de backend com FastAPI.',
+    version='0.0.0',
+)
+
 
 origins = [
     'http://localhost:3000',
@@ -38,13 +44,13 @@ def read_root():
 
 
 # ----------------------------------------- tipo_usuario -------------------------------------------------------#
-app.include_router(user_tipo)
+app.include_router(user_tipo, tags=['tipo_usuario'])
 
 # ----------------------------------------- usuario -------------------------------------------------------#
-app.include_router(user_control)
+app.include_router(user_control, tags=['Usuarios'])
 
 # ----------------------------------------- area -------------------------------------------------------#
-app.include_router(area_control)
+app.include_router(area_control, tags=['Areas'])
 
 # ----------------------------------------- reserva -------------------------------------------------------#
-app.include_router(reserva_control)
+app.include_router(reserva_control, tags=['Reservas'])

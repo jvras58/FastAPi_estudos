@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends  # , HTTPException
 from sqlalchemy.orm import Session
 
 import app.area.crud_area as crud_area
 
 # areas
 from app.area.area_schema import AreaCreate
+from app.Exceptions.exceptions import area_not_found_exception
 
 # usuario
 from app.usuario.crud_usuario import get_current_admin_user
@@ -62,7 +63,8 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
     """
     db_area = crud_area.get_area_by_name(nome, db)
     if db_area is None:
-        raise HTTPException(status_code=404, detail='Area not found')
+        raise area_not_found_exception()
+        # raise HTTPException(status_code=404, detail='Area not found')
     return db_area
 
 
@@ -84,7 +86,8 @@ def get_area(
     """
     db_area = crud_area.get_area_by_id(area_id, db)
     if db_area is None:
-        raise HTTPException(status_code=404, detail='Area not found')
+        raise area_not_found_exception()
+        # raise HTTPException(status_code=404, detail='Area not found')
     return db_area
 
 

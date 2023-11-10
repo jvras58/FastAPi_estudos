@@ -12,14 +12,14 @@
 
 ```json
 {
-  "id": "1",
+  "id": 1,
   "tipo": "administrador"
 }
 ```
 
 ```json
 {
-  "id": "2",
+  "id": 2,
   "tipo": "cliente"
 }
 ```

@@ -1,11 +1,18 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
+
+# from fastapi import status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 import app.security.auth as auth
+from app.Exceptions.exceptions import (
+    credentials_exception,
+    is_not_adm_exception,
+    is_not_validation_adm_exception,
+)
 from app.usuario.usuario_model import Usuario
 from app.usuario.usuario_schemas import UsuarioCreate
 from database.get_db import SessionLocal, get_db
@@ -83,18 +90,13 @@ async def get_current_user(
     Raises:
         HTTPException: Exceção HTTP com código 401 se as credenciais não puderem ser validadas.
     """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get('sub')
         if email is None:
-            raise credentials_exception
+            raise credentials_exception()
     except JWTError:
-        raise credentials_exception
+        raise credentials_exception()
 
     user = get_user_by_email(db=db, email_user=email)
     if user is None:
@@ -135,10 +137,7 @@ def get_current_admin_user(
         HTTPException(403): Se o usuário não tiver privilégios de administrador.
     """
     if not is_admin(current_user.id, db):
-        raise HTTPException(
-            status_code=403,
-            detail='Permissão negada. Somente administradores podem acessar esta rota.',
-        )
+        raise is_not_validation_adm_exception()
     return current_user
 
 
@@ -159,10 +158,7 @@ def is_admin(user_id: int, db: Session):
     """
     user = get_user_by_id(user_id, db)
     if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail='Usuário com privilegios de adm não encontrado',
-        )
+        raise is_not_adm_exception()
     return user.tipo.tipo == 'administrador'
 
 
