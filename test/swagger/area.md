@@ -81,6 +81,4 @@ Deleta a área correspondente ao ID fornecido.
   - Exemplo: `/areas/1`
 
 
-- ERROS DETECTADOS NAS ROTAS DE AREA:
-
-1 - /areas/{area_id} [update] (# FIXME: ESSA ROTA NÃO TA BEM COM UM PROBLEMA KK (TIPO ELA TA PEGANDO MAS NO RESPONSE BODY DEPOIS DO EXECUTE ELA NÃO MOSTRA O QUE FOI MUDADO MOSTRA UM {} SÓ...))
+---

@@ -16,7 +16,7 @@
 ```json
 {
   "nome": "adm test",
-  "tipo_id": "1",
+  "tipo_id": 1,
   "email": "adm.test@example.com",
   "senha": "senhaadm"
 }
@@ -25,7 +25,7 @@
 ```json
 {
   "nome": "cliente test",
-  "tipo_id": "2",
+  "tipo_id": 2,
   "email": "cliente.test@example.com",
   "senha": "senhacliente"
 }
@@ -44,13 +44,13 @@
 - adm:
 ```json
 {
-  "user_id": "1"
+  "user_id": 1
 }
 ```
 - cliente:
 ```json
 {
-  "user_id": "2"
+  "user_id": 2
 }
 ```
 - Clique em "Execute" para enviar a requisição.
@@ -66,7 +66,7 @@
 - adm:
 ```json
 {
-  "user_id": "1",
+  "user_id": 1,
   "nome": "adm test Jr.",
   "email": "adm.test.jr@example.com"
 }
@@ -74,7 +74,7 @@
 - cliente:
 ```json
 {
-  "user_id": "2",
+  "user_id": 2,
   "nome": "cliente test Jr.",
   "email": "cliente.test.jr@example.com"
 }
@@ -93,13 +93,13 @@
 - adm
 ```json
 {
-  "user_id": "1"
+  "user_id": 1
 }
 ```
 - cliente 
 ```json
 {
-  "user_id": "2"
+  "user_id": 2
 }
 ```
 
@@ -116,14 +116,14 @@
 - adm
 ```json
 {
-  "user_id": "1"
+  "user_id": 1
 }
 ```
 
 - cliente 
 ```json
 {
-  "user_id": "2"
+  "user_id": 2
 }
 ```
 
@@ -140,14 +140,14 @@
 - adm
 ```json
 {
-  "user_id": "1"
+  "user_id": 1
 }
 ```
 
 - cliente 
 ```json
 {
-  "user_id": "2"
+  "user_id": 2
 }
 ```
 

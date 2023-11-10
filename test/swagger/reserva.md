@@ -22,8 +22,8 @@ Cria uma nova reserva com os detalhes fornecidos.
   "justificacao": "Jogo de Equipe",
   "reserva_tipo": "Jogo",
   "status": "Em análise",
-  "area_id": "1",
-  "usuario_id": "3"
+  "area_id": 1,
+  "usuario_id": 1
 }
 ```
 - cliente:
@@ -36,8 +36,8 @@ Cria uma nova reserva com os detalhes fornecidos.
   "justificacao": "Jogo de Equipe",
   "reserva_tipo": "Jogo",
   "status": "Em análise",
-  "area_id": "1",
-  "usuario_id": "4"
+  "area_id": 1,
+  "usuario_id": 2
 }
 ```
 
@@ -79,8 +79,8 @@ Atualiza os detalhes de uma reserva existente.
   "justificacao": "Jogo de Equipe",
   "reserva_tipo": "Jogo",
   "status": "Em análise",
-  "area_id": "1",
-  "usuario_id": "1"
+  "area_id": 1,
+  "usuario_id": 1
 }
 ```
 
@@ -94,8 +94,8 @@ Atualiza os detalhes de uma reserva existente.
   "justificacao": "Jogo de queimado",
   "reserva_tipo": "Jogo",
   "status": "Em análise",
-  "area_id": "1",
-  "usuario_id": "2"
+  "area_id": 1,
+  "usuario_id": 2
 }
 ```
 
