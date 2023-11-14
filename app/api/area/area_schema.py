@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class AreaCreate(BaseModel):
@@ -8,6 +8,7 @@ class AreaCreate(BaseModel):
     tipo_piso: str
     covered: str
     foto_url: str
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AreaBase(AreaCreate):

@@ -1,4 +1,6 @@
-from app.security.auth import get_password_hash, verify_password
+from app.config.auth import get_password_hash, verify_password
+
+# executa os teste: pytest test/test_passcrypt.py
 
 
 def test_passcrypt():

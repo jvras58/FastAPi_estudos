@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ReservationCreate(BaseModel):
@@ -12,6 +12,7 @@ class ReservationCreate(BaseModel):
     status: str
     area_id: int
     usuario_id: int
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReservationBase(ReservationCreate):
@@ -19,5 +20,5 @@ class ReservationBase(ReservationCreate):
     valor: int
 
 
-class ReservationList(ReservationBase):
+class ReservationList(BaseModel):
     Reservation: list[ReservationBase]

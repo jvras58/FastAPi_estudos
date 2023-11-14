@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from dados_teste import DadosTeste_usuario
 from sqlalchemy import select
 
-import app.security.auth as auth
-from app.usuario.usuario_model import TipoUser as tipo
-from app.usuario.usuario_model import Usuario
+import app.config.auth as auth
+from app.api.reserva.reserva_schema import ReservationBase
+from app.api.tipo_usuario.tipo_usuario_model import TipoUser as tipo
+from app.api.usuario.usuario_model import Usuario
+from app.api.usuario.usuario_schemas import UsuarioBase
 
 # executa os teste: pytest test/test_usuario.py
 
@@ -301,7 +305,7 @@ def test_post_login_for_access_token_returns_unauthorized(
     )
     assert response.status_code == 401
     assert response.headers['WWW-Authenticate'] == 'Bearer'
-    assert response.json()['detail'] == 'Incorrect username or password'
+    assert response.json()['detail'] == 'Usuário ou senha incorretos'
 
 
 def test_post_login_for_access_token_cliente(
@@ -327,7 +331,7 @@ def test_post_login_for_access_token_cliente(
     assert response.json()['token_type'] == 'bearer'
 
 
-def test_get_user_admin(client, userTipoAdmin, userAdmin):
+def test_get_user_admin(client, userTipoAdmin, userAdmin, tokenadmin):
     """
     Testa se é possível obter informações de um usuário administrador pelo ID.
 
@@ -335,15 +339,19 @@ def test_get_user_admin(client, userTipoAdmin, userAdmin):
         client: objeto cliente do test_client(FASTAPI).
         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
         userAdmin: fixture que retorna um usuário tipo 'administrador'.
+        tokenadmin: token de autenticação JWT para o usuário administrador.
     """
-    response = client.get(f'/usuarios/{userAdmin.id}')
+    response = client.get(
+        f'/usuarios/{userAdmin.id}',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
     assert response.status_code == 200
     assert response.json()['nome'] == userAdmin.nome
     assert response.json()['email'] == userAdmin.email
 
 
 def test_get_user_admin_fail_usuario_não_encontrado(
-    client, userTipoAdmin, userAdmin
+    client, userTipoAdmin, userAdmin, tokenadmin
 ):
     """
     Testa se a rota retorna o status code 404 e a mensagem de erro correta
@@ -354,54 +362,191 @@ def test_get_user_admin_fail_usuario_não_encontrado(
         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
         userAdmin: fixture que retorna um usuário tipo 'administrador'.
     """
-    response = client.get('/usuarios/20')
+    response = client.get(
+        '/usuarios/20',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
 
-def test_get_user_admin_reservas_vazias(client, userTipoAdmin, userAdmin):
+def test_get_user_not_admin_fail_no_permission(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+):
     """
-    Testa se a rota '/usuarios/{userAdmin.id}/reservas' retorna uma lista vazia e um contador igual a zero
-    quando o usuário é um administrador e não possui reservas.
+    Testa se a obtenção de informações de um usuário falha quando o usuário que faz a solicitação não é um administrador e está tentando obter as informações de outro usuário.
+    Verifica se a API retorna o status code 403 e a mensagem de erro 'Sem permissão'
+    quando é feita uma requisição de obtenção de informações de um usuário por outro usuário que não é administrador.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+        userNormal: fixture que retorna um usuário normal.
+        tokenNormal: token de autenticação JWT para o usuário normal.
     """
-    response = client.get(f'/usuarios/{userAdmin.id}/reservas')
+    response = client.get(
+        f'/usuarios/{userAdmin.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert response.json() == {
+        'detail': 'Usuário não tem permissão para realizar essa ação'
+    }
+
+
+# testes roubados de marlosribeiro
+def test_read_users(client, userTipoAdmin, userAdmin, tokenadmin):
+    """
+    Testa se é possível obter uma lista de usuários.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+    """
+    response = client.get(
+        '/usuarios',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
     assert response.status_code == 200
-    assert response.json() == [[], 0]
+    assert len(response.json()['users']) > 0
 
 
-def test_get_user_cliente(client, userTipoClient, userCliente):
+def test_read_users_with_users(client, userTipoAdmin, userAdmin, tokenadmin):
+    """
+    Testa se o endpoint '/usuarios/' retorna as informações corretas do usuário.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: Fixture que cria um usuário com privilégios de administrador.
+        userAdmin: Fixture que cria um usuário com privilégios de administrador.
+    """
+    user_schema = UsuarioBase.model_validate(userAdmin).model_dump()
+    response = client.get(
+        '/usuarios/',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.json() == {'users': [user_schema]}
+
+
+def test_read_users_not_found(client):
+    """
+    Testa se é possível obter uma lista de usuários.
+    Verifica se a API retorna o status code 404 e a mensagem de erro 'User not found'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+    """
+    response = client.get(
+        '/usuarios',
+    )
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_read_users_count(
+    client, userTipoAdmin, userTipoClient, userAdmin, userCliente
+):
+    """
+    Testa se a rota retorna a contagem correta de usuários.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        tokenadmin: token de autenticação JWT para o usuário administrador.
+        db: Sessão do banco de dados.
+    """
+    response = client.get(
+        '/usuarios/contagem',
+    )
+    assert response.status_code == 200
+    assert response.json() == {'count': 2}
+
+
+def test_get_user_reservations(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+    tokenadmin,
+) -> None:
+    reserva_schema = ReservationBase.model_validate(
+        ReservaUserAdmin
+    ).model_dump()
+    response = client.get(
+        '/list/reservas',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    for reserva in data['Reservation']:
+        reserva['hora_inicio'] = datetime.strptime(
+            reserva['hora_inicio'], '%Y-%m-%dT%H:%M:%S'
+        )
+        reserva['hora_fim'] = datetime.strptime(
+            reserva['hora_fim'], '%Y-%m-%dT%H:%M:%S'
+        )
+        reserva['reserva_data'] = datetime.strptime(
+            reserva['reserva_data'], '%Y-%m-%dT%H:%M:%S'
+        )
+
+    assert data == {'Reservation': [reserva_schema]}
+
+
+def test_get_user_reservations_no_reservations(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+):
+    """
+    Testa se a rota retorna o status code 404 e a mensagem de erro correta
+    quando um usuário sem reservas associadas tenta obter suas reservas.
+    """
+    response = client.get(
+        '/list/reservas',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'Reserva não existe ou encontrada'}
+
+
+def test_get_user_cliente(client, userTipoClient, userCliente, tokencliente):
     """
     Testa se é possível obter informações de um usuário cliente pelo ID.
     """
-    response = client.get(f'/usuarios/{userCliente.id}')
+    response = client.get(
+        f'/usuarios/{userCliente.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
     assert response.status_code == 200
     assert response.json()['nome'] == userCliente.nome
     assert response.json()['email'] == userCliente.email
 
 
 def test_get_user_cliente_fail_usuario_nao_encontrado(
-    client, userTipoClient, userCliente
+    client, userTipoClient, userCliente, tokencliente
 ):
     """
     Testa se a rota retorna o status code 404 e a mensagem de erro correta
     Verifica se a API retorna o status code 404 e a mensagem de erro 'Usuário não encontrado'
     quando é feita uma requisição de GET de um usuário que não existe na base de dados.
     """
-    response = client.get('/usuarios/10')
+    response = client.get(
+        '/usuarios/10',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
-
-
-def test_get_user_cliente_fail_reservas_vazias(
-    client, userTipoClient, userCliente
-):
-    """
-    Testa se a rota '/usuarios/{userCliente.id}/reservas' retorna uma lista vazia e um contador igual a zero
-    quando o usuário é um cliente e não possui reservas.
-    """
-    response = client.get(f'/usuarios/{userCliente.id}/reservas')
-    assert response.status_code == 200
-    assert response.json() == [[], 0]
 
 
 def test_update_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -448,27 +593,42 @@ def test_update_user_adm_fail_usuario_nao_encontrado(
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
 
-# FiXME: esse teste deveria dar not_found para conseguir testar o erro do crud mas como no controller ja tém o erro do Usuário não encontrado ele acaba se sobrepondo
-def test_update_user_adm_fail_user_not_found(
-    client, userTipoAdmin, userAdmin, tokenadmin
+def test_update_user_not_admin_fail_no_permission(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+    tokenadmin,
 ):
     """
-    Testa se a atualização de um usuário administrador falha quando o usuário não é encontrado.
+    Testa se a atualização de um usuário falha quando o usuário que faz a solicitação não é um administrador e está tentando atualizar as informações de outro usuário.
+    Verifica se a API retorna o status code 403 e a mensagem de erro 'Sem permissão'
+    quando é feita uma requisição de atualização de um usuário por outro usuário que não é administrador.
 
-    Verifica se a API retorna o status code 404 e a mensagem de erro 'Usuário não encontrado'
-    quando é feita uma requisição de atualização de um usuário que não existe na base de dados.
     Args:
         client: objeto cliente do test_client(FASTAPI).
         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
         userAdmin: fixture que retorna um usuário tipo 'administrador'.
-        tokenadmin: token de autenticação JWT para o usuário administrador.
+        userCliente: fixture que retorna um usuário cliente.
+        tokenCliente: token de autenticação JWT para o usuário cliente.
     """
-    response_up_user = client.get(
-        '/usuarios/10',
-        headers={'Authorization': f'Bearer {tokenadmin}'},
+    usuario_data_update = {
+        'nome': 'user test 1',
+        'tipo_id': 2,
+        'email': 'user.test@example.com',
+        'senha': 'senhauser',
+    }
+    response_update_user = client.put(
+        f'/usuarios/{userAdmin.id}',
+        json=usuario_data_update,
+        headers={'Authorization': f'Bearer {tokencliente}'},
     )
-    assert response_up_user.status_code == 404
-    assert response_up_user.json() == {'detail': 'Usuário não encontrado'}
+    assert response_update_user.status_code == 403
+    assert response_update_user.json() == {
+        'detail': 'Usuário não tem permissão para realizar essa ação'
+    }
 
 
 def test_update_user_cliente(
@@ -499,7 +659,10 @@ def test_update_user_cliente(
     assert response_update_user.status_code == 200
     assert response_update_user.json()['nome'] == usuario_data_update['nome']
     assert response_update_user.json()['email'] == usuario_data_update['email']
-    response = client.get('/usuarios/10')
+    response = client.get(
+        '/usuarios/10',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
@@ -535,6 +698,35 @@ def test_update_user_cliente_fail(
     )
     assert response.status_code == 404
     assert response.json() == {'detail': 'Usuário não encontrado'}
+
+
+def test_update_user_adm_fail_user_not_found(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
+    """
+    Testa se a atualização de um usuário administrador falha quando o usuário não é encontrado.
+
+    Verifica se a API retorna o status code 404 e a mensagem de erro 'Usuário não encontrado'
+    quando é feita uma requisição de atualização de um usuário que não existe na base de dados.
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+        tokenadmin: token de autenticação JWT para o usuário administrador.
+    """
+    usuario_data_update = {
+        'nome': 'adm test 1',
+        'tipo_id': 1,
+        'email': 'adm.test@example.com',
+        'senha': 'senhaadm',
+    }
+    response_up_user = client.put(
+        '/usuarios/99',
+        json=usuario_data_update,
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response_up_user.status_code == 404
+    assert response_up_user.json() == {'detail': 'Usuário não encontrado'}
 
 
 def test_delete_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -634,6 +826,31 @@ def test_delete_user_id_adm_fail(client, userTipoAdmin, userAdmin):
     )
     assert response_delete_user.status_code == 401
     assert response_delete_user.json() == {'detail': 'Not authenticated'}
+
+
+def test_delete_user_id_fail_not_admin_or_same_user(
+    client, userTipoAdmin, userAdmin, userTipoClient, userCliente, tokencliente
+):
+    """
+    Testa se o endpoint '/usuarios/delete/{user_id}' retorna o status code 403 e a mensagem de erro 'Sem permissão'
+    quando é feita uma requisição DELETE com um id de usuário EXISTENTE, mas o usuário autenticado não é o mesmo usuário e não é um administrador.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo administrador.
+        userAdmin: fixture que retorna um usuário administrador.
+        userNormal: fixture que retorna um usuário normal.
+        tokennormal: fixture que retorna um token de acesso para o usuário normal.
+    """
+    user_id = userAdmin.id
+    response_delete_user = client.delete(
+        f'/usuarios/delete/{user_id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response_delete_user.status_code == 403
+    assert response_delete_user.json() == {
+        'detail': 'Usuário não tem permissão para realizar essa ação'
+    }
 
 
 # kk esse teste nem deve fazer muito sentido mas tudo bem (tecnicamente essa rota deve ser so pra adms poderem apagar a conta que quiser mas tudo bem kk) kk
@@ -742,81 +959,6 @@ def test_delete_user_user_fail_not_auth(client, userTipoClient, userCliente):
     )
     assert response_delete_user.status_code == 401
     assert response_delete_user.json() == {'detail': 'Not authenticated'}
-
-
-def test_get_user_reservations_adm(
-    client, userTipoAdmin, userAdmin, AreaUserAdmin, ReservaUserAdmin
-):
-    """
-    Teste o endpoint que recupera todas as reservas feitas por um usuário específico (ID).
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-        userTipoAdmin: Fixture que cria um usuário com a função 'admin'.
-        userAdmin: Fixture que cria um usuário administrador.
-        AreaUserAdmin: Fixture que cria uma área associada ao usuário administrador.
-        ReservaUserAdmin: Fixture que cria uma reserva associada ao usuário administrador.
-    """
-    response = client.get(f'/usuarios/{userAdmin.id}/reservas')
-    assert response.status_code == 200
-    assert response.json()[0][0]['id'] == ReservaUserAdmin.id
-    assert response.json()[0][0]['area_id'] == ReservaUserAdmin.area_id
-
-
-def test_get_user_reservations_adm_vazio(
-    client,
-    userTipoAdmin,
-    userAdmin,
-):
-    """
-    Teste o endpoint que recupera todas as reservas feitas por um usuário específico (ID) Como o usuario não tem o fixture de reservas então ele vai retornar vazio.
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-        userTipoAdmin: Fixture que cria um usuário com a função 'admin'.
-        userAdmin: Fixture que cria um usuário administrador.
-    """
-    response = client.get(f'/usuarios/{userAdmin.id}/reservas')
-    assert response.status_code == 200
-    assert response.json() == [[], 0]
-
-
-def test_get_user_reservations_cliente(
-    client, userTipoClient, userCliente, AreaUserAdmin, ReservaUserCliente
-):
-    """
-    Teste o endpoint que recupera todas as reservas feitas por um usuário específico (ID).
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-        userTipoClient: Fixture que cria um usuário com a função 'cliente'.
-        userCliente: Fixture que cria um usuário cliente.
-        AreaUserAdmin: Fixture que cria uma área associada ao usuário administrador.
-        ReservaUserAdmin: Fixture que cria uma reserva associada ao usuário administrador.
-    """
-    response = client.get(f'/usuarios/{userCliente.id}/reservas')
-    assert response.status_code == 200
-    assert response.json()[0][0]['id'] == ReservaUserCliente.id
-    assert response.json()[0][0]['area_id'] == ReservaUserCliente.area_id
-
-
-def test_get_user_reservations_cliente_fail_vazio(
-    client,
-    userTipoClient,
-    userCliente,
-):
-    """
-    Teste o endpoint que recupera todas as reservas feitas por um usuário específico (ID) Como o usuario não tem o fixture de reservas então ele vai retornar vazio.
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-        userTipoClient: Fixture que cria um usuário com a função 'cliente'.
-        userCliente: Fixture que cria um usuário cliente.
-
-    """
-    response = client.get(f'/usuarios/{userCliente.id}/reservas')
-    assert response.status_code == 200
-    assert response.json() == [[], 0]
 
 
 """

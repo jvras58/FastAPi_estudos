@@ -1,19 +1,18 @@
+from typing import Annotated
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.area.crud_area import get_area_by_id
-from app.Exceptions.exceptions import (
-    area_nao_encontrada_exception,
-    reserva_nao_encontrada_exception,
-    usuario_nao_encontrado_ou_nao_autenticado_exception,
-)
-from app.reserva.reserva_model import Reservation
-from app.reserva.reserva_schema import ReservationCreate
-from app.usuario.crud_usuario import get_user_by_id
-from database.get_db import get_db
+from app.api.area.crud_area import get_area_by_id
+from app.api.reserva.reserva_model import Reservation
+from app.api.reserva.reserva_schema import ReservationCreate
+from app.api.usuario.crud_usuario import get_user_by_id
+from app.database.get_db import get_db
+
+Session = Annotated[Session, Depends(get_db)]
 
 
-def get_reservation_by_id(reservation_id: int, db: Session = Depends(get_db)):
+def get_reservation_by_id(reservation_id: int, db: Session):
     """
     Obtém uma reserva pelo seu ID.
 
@@ -24,12 +23,15 @@ def get_reservation_by_id(reservation_id: int, db: Session = Depends(get_db)):
     Returns:
         Reservation: A reserva encontrada com o ID correspondente, ou None se não encontrada.
     """
-    return (
+    reservas = (
         db.query(Reservation).filter(Reservation.id == reservation_id).first()
     )
+    if not reservas:
+        return None
+    return reservas
 
 
-def get_reservations_by_user_id(user_id: int, db: Session = Depends(get_db)):
+def get_reservations_by_user_id(user_id: int, db: Session):
     """
     Obtém todas as reservas associadas a um usuário pelo seu ID.
 
@@ -38,24 +40,34 @@ def get_reservations_by_user_id(user_id: int, db: Session = Depends(get_db)):
         db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
 
     Returns:
-        List[Reservation]: Uma lista de reservas associadas ao usuário, ou uma lista vazia se não houver nenhuma.
+        List[Reservation]: Uma lista de reservas associadas ao usuário, ou None se não houver nenhuma.
     """
-    return (
+    reservations = (
         db.query(Reservation).filter(Reservation.usuario_id == user_id).all()
     )
+    if not reservations:
+        return None
+    return reservations
 
 
-def get_all(db: Session = Depends(get_db)):
+def get_reservas(
+    db: Session, skip: int = 0, limit: int = 100
+) -> list[Reservation]:
     """
-    Obtém todas as reservas no banco de dados.
+    Retorna uma lista de reservas a partir do banco de dados.
 
-    Args:
-        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+    Parâmetros:
+    db (Session): Sessão do banco de dados.
+    skip (int): Quantidade de reservas a serem ignorados.
+    limit (int): Quantidade máxima de reservas a serem retornados.
 
-    Returns:
-        List[Area]: Uma lista de todas as reservas.
+    Retorna:
+    list[reservas]: Lista de areas.
     """
-    return db.query(Reservation).all()
+    reservas = db.query(Reservation).offset(skip).limit(limit).all()
+    if not reservas:
+        return None
+    return reservas
 
 
 def create_reservation(db: Session, reservation: ReservationCreate):
@@ -73,29 +85,15 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     # Verifica se o usuário existe
     user = get_user_by_id(reservation.usuario_id, db)
     if not user:
-        raise usuario_nao_encontrado_ou_nao_autenticado_exception()
+        return None
 
     # Verifica se a área existe
     area = get_area_by_id(reservation.area_id, db)
     if not area:
-        raise area_nao_encontrada_exception()
+        return None
 
     # Verificar se há conflito de horários
-    inicio = reservation.hora_inicio
-    fim = reservation.hora_fim
-
-    reservas_conflito = (
-        db.query(Reservation)
-        .filter(
-            Reservation.area_id == reservation.area_id,
-            Reservation.reserva_data == reservation.reserva_data,
-            Reservation.hora_inicio < fim,
-            Reservation.hora_fim > inicio,
-        )
-        .all()
-    )
-
-    if reservas_conflito:
+    if check_reservation_conflict(db, reservation):
         return None
 
     db_reservation = Reservation(**reservation.model_dump())
@@ -111,10 +109,40 @@ def create_reservation(db: Session, reservation: ReservationCreate):
     return db_reservation
 
 
+def check_reservation_conflict(
+    db: Session, reservation: ReservationCreate
+) -> bool:
+    """
+    Verifica se há conflito de horários entre as reservas.
+
+    Args:
+        db (Session): Sessão do banco de dados.
+        reservation (ReservationCreate): Os dados da reserva a ser criada.
+
+    Returns:
+        bool: True se houver conflito de horários, False caso contrário.
+    """
+    inicio = reservation.hora_inicio
+    fim = reservation.hora_fim
+
+    reservas_conflito = (
+        db.query(Reservation)
+        .filter(
+            Reservation.area_id == reservation.area_id,
+            Reservation.reserva_data == reservation.reserva_data,
+            Reservation.hora_inicio < fim,
+            Reservation.hora_fim > inicio,
+        )
+        .all()
+    )
+
+    return bool(reservas_conflito)
+
+
 def update_reservation(
     reservation_id: int,
     reservation: ReservationCreate,
-    db: Session = Depends(get_db),
+    db: Session,
 ):
     """
     Atualiza os detalhes de uma reserva existente.
@@ -132,7 +160,7 @@ def update_reservation(
     """
     db_reservation = get_reservation_by_id(reservation_id, db)
     if not db_reservation:
-        raise reserva_nao_encontrada_exception()
+        return None
     for dado, valor in reservation.model_dump().items():
         setattr(db_reservation, dado, valor)
     db_reservation.valor = define_preco_por_hora(reservation)
@@ -141,23 +169,7 @@ def update_reservation(
     return db_reservation
 
 
-# FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE RESERVA (IGNORAR NO COVERAGE)
-def delete_reservation1(db: Session, db_reservation: Reservation):
-    """
-    Exclui uma reserva existente.
-
-    Args:
-        db (Session): Uma sessão do banco de dados.
-        db_reservation (Reservation): A reserva a ser excluída.
-
-    Returns:
-        dict: Um dicionário com uma mensagem indicando que a reserva foi excluída com sucesso.
-    """
-    db.delete(db_reservation)
-    db.commit()
-
-
-def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
+def delete_reservation(reservation_id: int, db: Session):
     """
     Deleta uma área existente.
 
@@ -170,9 +182,10 @@ def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
     """
     db_reserva = get_reservation_by_id(reservation_id, db)
     if not db_reserva:
-        raise reserva_nao_encontrada_exception()
+        return False
     db.delete(db_reserva)
     db.commit()
+    return True
 
 
 # FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE RESERVA (IGNORAR NO COVERAGE)

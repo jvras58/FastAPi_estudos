@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
-from app.usuario.usuario_model import TipoUser
+from app.api.tipo_usuario.tipo_usuario_model import TipoUser
+from app.api.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
 
 
 def create_tipo_usuario(db: Session, tipo_usuario: TipoUserCreate):

@@ -1,17 +1,19 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-import app.tipo_usuario.crud_tipo_usuario as crud_tipo_user
-from app.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
-from database.get_db import get_db
+import app.api.tipo_usuario.crud_tipo_usuario as crud_tipo_user
+from app.api.tipo_usuario.tipo_usuario_schemas import TipoUserCreate
+from app.database.get_db import get_db
 
 router_tipo_usuario = APIRouter()
 
+Session = Annotated[Session, Depends(get_db)]
+
 
 @router_tipo_usuario.post('/tipos_usuario')
-def create_tipo_usuario(
-    tipo_usuario: TipoUserCreate, db: Session = Depends(get_db)
-):
+def create_tipo_usuario(tipo_usuario: TipoUserCreate, db: Session):
     """
     Cria um novo tipo de usuário.
 

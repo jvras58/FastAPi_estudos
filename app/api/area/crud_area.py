@@ -1,16 +1,17 @@
+from typing import Annotated
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.area.area_model import Area
-from app.area.area_schema import AreaCreate
-from app.Exceptions.exceptions import (
-    area_existente_exception,
-    area_not_found_exception,
-)
-from database.get_db import get_db
+from app.api.area.area_model import Area
+from app.api.area.area_schema import AreaCreate
+from app.database.get_db import get_db
+from app.Exceptions.exceptions import area_existente_exception
+
+Session = Annotated[Session, Depends(get_db)]
 
 
-def get_area_by_name(nome: str, db: Session = Depends(get_db)):
+def get_area_by_name(nome: str, db: Session):
     """
     Obtém uma área pelo seu nome.
 
@@ -24,20 +25,25 @@ def get_area_by_name(nome: str, db: Session = Depends(get_db)):
     return db.query(Area).filter(Area.nome == nome).first()
 
 
-def get_all(db: Session = Depends(get_db)):
+def get_areas(db: Session, skip: int = 0, limit: int = 100) -> list[Area]:
     """
-    Obtém todas as áreas no banco de dados.
+    Retorna uma lista de areas a partir do banco de dados.
 
-    Args:
-        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+    Parâmetros:
+    db (Session): Sessão do banco de dados.
+    skip (int): Quantidade de areas a serem ignorados.
+    limit (int): Quantidade máxima de areas a serem retornados.
 
-    Returns:
-        List[Area]: Uma lista de todas as áreas.
+    Retorna:
+    list[areas]: Lista de areas.
     """
-    return db.query(Area).all()
+    area = db.query(Area).offset(skip).limit(limit).all()
+    if not area:
+        return None
+    return area
 
 
-def get_area_by_id(area_id: int, db: Session = Depends(get_db)):
+def get_area_by_id(area_id: int, db: Session):
     """
     Obtém uma área pelo seu ID.
 
@@ -84,7 +90,7 @@ def create_area(db: Session, area: AreaCreate):
     return db_area
 
 
-def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
+def update_area(area_id: int, area: AreaCreate, db: Session):
     """
     Atualiza os detalhes de um usuário.
 
@@ -98,7 +104,7 @@ def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
     """
     db_area = get_area_by_id(area_id, db)
     if not db_area:
-        raise area_not_found_exception()
+        return None
     for dado, valor in area.model_dump().items():
         setattr(db_area, dado, valor)
     db.commit()
@@ -106,7 +112,7 @@ def update_area(area_id: int, area: AreaCreate, db: Session = Depends(get_db)):
     return db_area
 
 
-def delete_area(area_id: int, db: Session = Depends(get_db)):
+def delete_area(area_id: int, db: Session):
     """
     Deleta uma área existente.
 
@@ -114,11 +120,12 @@ def delete_area(area_id: int, db: Session = Depends(get_db)):
         area_id (int): ID da área a ser deletada.
         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
 
-    Raises:
-        HTTPException: Retorna um erro HTTP 404 se a área não for encontrada.
+    Returns:
+        bool: Indica se a área foi deletada com sucesso.
     """
     db_area = get_area_by_id(area_id, db)
     if not db_area:
-        raise area_not_found_exception()
+        return False
     db.delete(db_area)
     db.commit()
+    return True

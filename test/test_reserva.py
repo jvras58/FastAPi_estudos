@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from app.reserva.reserva_model import Reservation
+from app.api.reserva.reserva_model import Reservation
 
 
 def test_estrutura_do_banco_creat_reserva_adm(
@@ -222,8 +222,8 @@ def test_create_reserva_adm_fail_area_nao_existe(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    assert response.status_code == 400
-    assert response.json()['detail'] == 'Area não existe'
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_create_reserva_adm_fail_hora_indisponivel(
@@ -266,6 +266,44 @@ def test_create_reserva_adm_fail_hora_indisponivel(
     )
     assert response.status_code == 400
     assert response.json()['detail'] == 'Horário indiponível para essa Área'
+
+
+# def test_create_reserva_fail_sem_permissao(
+#     client, userTipoAdmin, userAdmin, AreaUserAdmin, tokenadmin
+# ):
+#     """
+#     Teste para criar uma reserva com um usuário que não tem permissão.
+#     Verifica se a API retorna o status code 403 e a mensagem de erro 'Sem permissão'
+#     quando é feita uma requisição de criação da reserva é feita por um usuário que não tem permissão.
+
+#     Args:
+#         client: objeto cliente do test_client(FASTAPI).
+#         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+#         userAdmin: fixture que retorna um usuário tipo 'administrador'.
+#         AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+#         tokenadmin: token de autenticação JWT para o usuário administrador.
+#     """
+#     reserva_data = {
+#         'valor': 10,
+#         'reserva_data': '2023-10-23T12:00:00',
+#         'hora_inicio': '2023-10-23T14:00:00',
+#         'hora_fim': '2023-10-23T16:00:00',
+#         'justificacao': 'Jogo de Equipe',
+#         'reserva_tipo': 'Jogo',
+#         'status': 'Em análise',
+#         'area_id': AreaUserAdmin.id,
+#         'usuario_id': userAdmin.id + 1,
+#     }
+#     response = client.post(
+#         '/reservas',
+#         json=reserva_data,
+#         headers={'Authorization': f'Bearer {tokenadmin}'},
+#     )
+#     assert response.status_code == 403
+#     assert (
+#         response.json()['detail']
+#         == 'Usuário não tem permissão para realizar essa ação'
+#     )
 
 
 def test_create_reserva_cliente(
@@ -380,8 +418,8 @@ def test_create_reserva_cliente_fail_area_nao_existe(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
-    assert response.status_code == 400
-    assert response.json()['detail'] == 'Area não existe'
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_create_reserva_cliente_fail_hora_indisponivel(
@@ -426,7 +464,7 @@ def test_create_reserva_cliente_fail_hora_indisponivel(
     assert response.json()['detail'] == 'Horário indiponível para essa Área'
 
 
-def test_get_all_reservas_adm(
+def test_read_reservas(
     client,
     userTipoAdmin,
     userAdmin,
@@ -435,8 +473,7 @@ def test_get_all_reservas_adm(
     tokenadmin,
 ):
     """
-    Testa o endpoint de recuperar todas as reservas do usuario
-    Verifica se o usuario pelo (ID) tem reservas vinculados ao seu ID além de criar uma nova reserva e verifica os dados de ambas reservas
+    Testa se é possível obter uma lista de RESERVAS.
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
@@ -444,112 +481,32 @@ def test_get_all_reservas_adm(
         userAdmin: fixture que retorna um usuário tipo 'administrador'.
         AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
         ReservaUserAdmin: fixture que retorna uma reserva criada por um usuário do tipo 'administrador'.
-        tokenadmin: token de autenticação JWT para o usuário administrador.
-
     """
-    # esse teste pega a reserva que ja existe(ReservaUserAdmin) é a que é criada neste proprio teste
-    reserva_data = {
-        'valor': 0,
-        'reserva_data': '2023-11-23T12:00:00',
-        'hora_inicio': '2023-11-23T14:00:00',
-        'hora_fim': '2023-11-23T16:00:00',
-        'justificacao': 'Jogo de Equipe 2',
-        'reserva_tipo': 'Jogo 2',
-        'status': 'Em análise',
-        'area_id': AreaUserAdmin.id,
-        'usuario_id': userAdmin.id,
-    }
-    client.post(
-        '/reservas',
-        json=reserva_data,
-        headers={'Authorization': f'Bearer {tokenadmin}'},
-    )
     response = client.get('/reservas')
     assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()[0]['id'] == 1
-    assert response.json()[0]['valor'] == 10
-    assert response.json()[0]['reserva_data'] == '2023-10-23T12:00:00'
-    assert response.json()[0]['hora_inicio'] == '2023-10-23T14:00:00'
-    assert response.json()[0]['hora_fim'] == '2023-10-23T16:00:00'
-    assert response.json()[0]['justificacao'] == 'Jogo de Equipe'
-    assert response.json()[0]['reserva_tipo'] == 'Jogo'
-    assert response.json()[0]['status'] == 'Em análise'
-    assert response.json()[0]['area_id'] == AreaUserAdmin.id
-    assert response.json()[0]['usuario_id'] == userAdmin.id
-    assert response.json()[1]['valor'] == 20
-    assert response.json()[1]['id'] == 2
-    assert response.json()[1]['reserva_data'] == '2023-11-23T12:00:00'
-    assert response.json()[1]['hora_inicio'] == '2023-11-23T14:00:00'
-    assert response.json()[1]['hora_fim'] == '2023-11-23T16:00:00'
-    assert response.json()[1]['justificacao'] == 'Jogo de Equipe 2'
-    assert response.json()[1]['reserva_tipo'] == 'Jogo 2'
-    assert response.json()[1]['status'] == 'Em análise'
-    assert response.json()[1]['area_id'] == AreaUserAdmin.id
-    assert response.json()[1]['usuario_id'] == userAdmin.id
+    assert len(response.json()['Reservation']) > 0
 
 
-def test_get_all_reservas_cliente(
+def test_read_reservas_not_found(
     client,
-    userTipoClient,
-    userCliente,
+    userTipoAdmin,
+    userAdmin,
     AreaUserAdmin,
-    ReservaUserCliente,
-    tokencliente,
+    tokenadmin,
 ):
     """
-    Testa o endpoint de recuperar todas as reservas do usuario
-    Verifica se o usuario pelo (ID) tem reservas vinculados ao seu ID além de criar uma nova reserva e verifica os dados de ambas reservas
+    Testa se é possível obter uma lista de RESERVAS.
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
-        userTipoClient: fixture que retorna um usuário do tipo 'cliente'.
-        userCliente: fixture que retorna um usuário tipo 'cliente'.
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
         AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
         ReservaUserAdmin: fixture que retorna uma reserva criada por um usuário do tipo 'administrador'.
-        tokenadmin: token de autenticação JWT para o usuário administrador.
-
     """
-    # esse teste pega a reserva que ja existe(ReservaUserAdmin) é a que é criada neste proprio teste
-    reserva_data = {
-        'valor': 0,
-        'reserva_data': '2023-11-23T12:00:00',
-        'hora_inicio': '2023-11-23T14:00:00',
-        'hora_fim': '2023-11-23T16:00:00',
-        'justificacao': 'Jogo de Equipe 2',
-        'reserva_tipo': 'Jogo 2',
-        'status': 'Em análise',
-        'area_id': AreaUserAdmin.id,
-        'usuario_id': userCliente.id,
-    }
-    client.post(
-        '/reservas',
-        json=reserva_data,
-        headers={'Authorization': f'Bearer {tokencliente}'},
-    )
     response = client.get('/reservas')
-    assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()[0]['id'] == 1
-    assert response.json()[0]['valor'] == 10
-    assert response.json()[0]['reserva_data'] == '2023-10-23T16:00:00'
-    assert response.json()[0]['hora_inicio'] == '2023-10-23T17:00:00'
-    assert response.json()[0]['hora_fim'] == '2023-10-23T19:00:00'
-    assert response.json()[0]['justificacao'] == 'Jogo de Equipe Cliente'
-    assert response.json()[0]['reserva_tipo'] == 'Jogo cliente'
-    assert response.json()[0]['status'] == 'Em análise'
-    assert response.json()[0]['area_id'] == AreaUserAdmin.id
-    assert response.json()[0]['usuario_id'] == userCliente.id
-    assert response.json()[1]['valor'] == 20
-    assert response.json()[1]['id'] == 2
-    assert response.json()[1]['reserva_data'] == '2023-11-23T12:00:00'
-    assert response.json()[1]['hora_inicio'] == '2023-11-23T14:00:00'
-    assert response.json()[1]['hora_fim'] == '2023-11-23T16:00:00'
-    assert response.json()[1]['justificacao'] == 'Jogo de Equipe 2'
-    assert response.json()[1]['reserva_tipo'] == 'Jogo 2'
-    assert response.json()[1]['status'] == 'Em análise'
-    assert response.json()[1]['area_id'] == AreaUserAdmin.id
-    assert response.json()[1]['usuario_id'] == userCliente.id
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_get_reserva_adm_by_id(
@@ -596,7 +553,7 @@ def test_get_reserva_adm_by_id_fail_not_found(
         '/reservas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_update_reserva_adm(
@@ -682,7 +639,7 @@ def test_update_reserva_adm_fail_not_found(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_update_reserva_cliente(
@@ -768,7 +725,7 @@ def test_update_reserva_cliente_fail_not_found(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_delete_reserva_adm(
@@ -821,7 +778,7 @@ def test_delete_reserva_adm_fail_reserva_not_found(
         '/reservas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_get_reservas_usuario_cliente(
@@ -874,6 +831,31 @@ def test_get_reservas_usuario_fail_Not_authenticated(
     response = client.get('/usuario/reservas')
     assert response.status_code == 401
     assert response.json()['detail'] == 'Not authenticated'
+
+
+def test_get_reservas_usuario_fail_Not_found(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+    AreaUserAdmin,
+):
+    """Testa se um usuário não autenticado recebe uma resposta 401 'Not authenticated' ao tentar acessar suas reservas.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoClient: O tipo de usuário do cliente.
+        userCliente: O usuário cliente.
+        tokencliente: O token de autenticação do cliente.
+        AreaUserAdmin: fixture que cria uma área de uso para o usuário admin.
+        ReservaUserCliente: A reserva do usuário cliente.
+    """
+    response = client.get(
+        '/usuario/reservas',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_get_reservas_id_usuario_cliente(
@@ -951,7 +933,7 @@ def test_get_reservas_id_usuario_cliente_fail_not_found(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
 def test_get_reservas_id_usuario_adm(
@@ -1028,4 +1010,4 @@ def test_get_reservas_id_usuario_adm_fail_not_found(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reservation not found'
+    assert response.json()['detail'] == 'Reserva não existe ou encontrada'

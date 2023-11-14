@@ -1,7 +1,23 @@
-# Para subir a imagem do banco com o docker(puramente):
+# instale o poetry:
+
+https://python-poetry.org/
+
+
+# comandos do poetry:
+- ativa o ambiente virtual
+```
+poetry shell 
+```
+- instala as dependencias
+```
+poetry install 
+```
+
+
+# Para subir a imagem do banco com o docker:
 
 ```
-docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest
+task docker
 ```
 
 # Para aplicar as migrações ja feitas no alembic:
@@ -26,7 +42,7 @@ uvicorn app.main:app --reload
 
 - link do servidor: http://127.0.0.1:8000/
 
-# Etapas para testar rotas usando o swegger do FastApi:
+# Etapas para testar rotas usando o swagger do FastApi:
 
 1. Garanta que o servidor esteja rodando:
 
@@ -38,7 +54,5 @@ uvicorn app.main:app --reload
    4. [Para testar as rotas de Reserva](test/swagger/reserva.md)
 
 
-> [!WARNING]
-> FIXME: (ERRO expression 'TipoUser' failed to locate a name ('TipoUser'))
-
 ---
+

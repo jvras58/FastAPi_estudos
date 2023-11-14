@@ -1,9 +1,11 @@
+import importlib
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from app.config.config import get_settings
 
 
 #------------------------------------------------------------#
@@ -16,7 +18,7 @@ config = context.config
 # this will overwrite the ini-file sqlalchemy.url path
 # with the path given in the config of the main code
 
-config.set_main_option("sqlalchemy.url", "postgresql+psycopg2://postgres:postgres@localhost:5439/postgres")
+config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)
 #------------------------------------------------------------#
 
 # Interpret the config file for Python logging.
@@ -30,13 +32,20 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 
 # ---------------- LOADING Models -------------------------#
-#FIXME: POR ENQUANTO O UNICO JEITO DE CORRIGIR O ERRO É COLOCANDO O TIPO_USER dentro do proprio models do usuario (ERRO expression 'TipoUser' failed to locate a name ('TipoUser'))
-#from app.usuario.tipo_usuario_model import Base
-from app.usuario.usuario_model import Base
-from app.area.area_model import Base
-from app.reserva.reserva_model import Base
+from app.database.base import Base
 
+app_models = [
+    'app.api.security.tipo_usuario.tipo_usuario_model',
+    'app.api.usuario.usuario_model',
+    'app.api.area.area_model',
+    'app.api.reserva.reserva_model',
+]
 
+for model in app_models:
+    try:
+        loaded_module = importlib.import_module(model)
+    except ModuleNotFoundError:
+        print(f'Could not import module {model}')
 
 #------------------------------------------------------------#
 # target_metadata = None

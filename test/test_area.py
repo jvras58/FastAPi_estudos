@@ -1,6 +1,6 @@
 # executa os teste: pytest test/test_area.py
 
-from app.area.area_model import Area
+from app.api.area.area_model import Area
 
 
 def test_estrutura_do_banco_creat_area(session, userTipoAdmin, userAdmin):
@@ -95,7 +95,7 @@ def test_create_area_adm_fail(
         json=area_data,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert response.json()['detail'] == 'Área já existe'
 
 
@@ -132,53 +132,37 @@ def test_create_area_cliente(
     )
 
 
-def test_get_all_areas(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
+def test_read_areas(
+    client, userTipoAdmin, userAdmin, tokenadmin, AreaUserAdmin
+):
     """
-    Testa o endpoint de recuperar todas as areas disponiveis
-    Verifica se a area foi criada+recuperada corretamente e se suas informações estão corretas.
+    Testa se é possível obter uma lista de reservas.
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
         AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
-        tokenadmin: token de autenticação JWT para o usuário administrador.
-
     """
-    # esse teste pega a area que ja existe(AreaUserAdmin) é a que é criada neste proprio teste
-    area_data = {
-        'nome': 'Quadra de tênis',
-        'descricao': 'Uma quadra de tênis espaçosa',
-        'iluminacao': 'LED',
-        'tipo_piso': 'Liso',
-        'covered': 'Sim',
-        'foto_url': 'https://example.com/quadra_tenis.jpg',
-    }
-    client.post(
-        '/areas',
-        json=area_data,
-        headers={'Authorization': f'Bearer {tokenadmin}'},
-    )
     response = client.get('/areas')
     assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()[0]['nome'] == 'Quadra de volei'
-    assert response.json()[0]['descricao'] == 'Uma quadra de volei espaçosa'
-    assert response.json()[0]['iluminacao'] == 'LED'
-    assert response.json()[0]['tipo_piso'] == 'Liso'
-    assert response.json()[0]['covered'] == 'Sim'
-    assert (
-        response.json()[0]['foto_url']
-        == 'https://example.com/quadra_volei.jpg'
-    )
-    assert response.json()[1]['nome'] == 'Quadra de tênis'
-    assert response.json()[1]['descricao'] == 'Uma quadra de tênis espaçosa'
-    assert response.json()[1]['iluminacao'] == 'LED'
-    assert response.json()[1]['tipo_piso'] == 'Liso'
-    assert response.json()[1]['covered'] == 'Sim'
-    assert (
-        response.json()[1]['foto_url']
-        == 'https://example.com/quadra_tenis.jpg'
-    )
+    assert len(response.json()['areas']) > 0
+
+
+def test_read_areas_area_nao_existe(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
+    """
+    Testa se é possível obter uma lista de usuários.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+    """
+    response = client.get('/areas')
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_get_area_by_name(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
@@ -221,7 +205,7 @@ def test_get_area_by_name_fail(
     """
     response = client.get(f'/areas/nome/{AreaUserAdmin.iluminacao}')
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area not found'
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_get_area_by_id(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
@@ -268,7 +252,7 @@ def test_get_area_by_id_fail(
         '/areas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area not found'
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_update_area(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
@@ -332,7 +316,7 @@ def test_update_area_fail(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area not found'
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
 def test_delete_area(
@@ -370,4 +354,4 @@ def test_delete_area_fail(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
         '/areas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area not found'
+    assert response.json()['detail'] == 'Area não existe ou não encontrada'

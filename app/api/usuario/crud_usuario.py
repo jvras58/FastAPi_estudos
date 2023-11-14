@@ -1,42 +1,24 @@
 from typing import Annotated
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-import app.security.auth as auth
+import app.config.auth as auth
+from app.api.auth.crud_auth import get_current_user
+from app.api.reserva.reserva_model import Reservation
+from app.api.usuario.usuario_model import Usuario
+from app.api.usuario.usuario_schemas import UsuarioCreate
+from app.database.get_db import get_db
 from app.Exceptions.exceptions import (
-    credentials_exception,
     is_not_adm_exception,
     is_not_validation_adm_exception,
     user_not_found_exception,
 )
-from app.usuario.usuario_model import Usuario
-from app.usuario.usuario_schemas import UsuarioCreate
-from database.get_db import SessionLocal, get_db
 
-SECRET_KEY = '2b9297ddf50a5336ba333962928ce57a1db91464c45c1831d26a4e4b23f5889d'
-ALGORITHM = 'HS256'
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token')
+Session = Annotated[Session, Depends(get_db)]
 
 
-def get_user_by_email(email_user: str, db: SessionLocal = Depends(get_db)):
-    """
-    Obtém um usuário pelo endereço de e-mail.
-
-    Args:
-        email_user (str): O endereço de e-mail do usuário a ser obtido.
-        db (SessionLocal, optional): Uma sessão do banco de dados. obtido via Depends(get_db).
-
-    Returns:
-        Usuario: O usuário correspondente ao endereço de e-mail, ou None se não for encontrado.
-    """
-    return db.query(Usuario).filter(Usuario.email == email_user).first()
-
-
-def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+def get_user_by_id(user_id: int, db: Session):
     """
     Obtém um usuário pelo seu ID.
 
@@ -45,12 +27,40 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         db (Session, optional): Sessão do banco de dados. obtido via Depends(get_db).
 
     Returns:
-        Usuario: O usuário correspondente ao ID especificado.
+        Usuario: O usuário correspondente ao ID especificado, ou None se não for encontrado.
 
     Raises:
         HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
     """
-    return db.query(Usuario).filter(Usuario.id == user_id).first()
+    user = db.query(Usuario).filter(Usuario.id == user_id).first()
+    if not user:
+        return None
+    return user
+
+
+def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[Usuario]:
+    """
+    Retorna uma lista de usuários a partir do banco de dados.
+
+    Parâmetros:
+    db (Session): Sessão do banco de dados.
+    skip (int): Quantidade de usuários a serem ignorados.
+    limit (int): Quantidade máxima de usuários a serem retornados.
+
+    Retorna:
+    list[Usuario]: Lista de usuários.
+    """
+    users = db.query(Usuario).offset(skip).limit(limit).all()
+    if not users:
+        return None
+    return users
+
+
+def get_users_count(db: Session):
+    """
+    Retorna a quantidade de usuários cadastrados no banco de dados.
+    """
+    return db.query(Usuario).count()
 
 
 def create_user(db: Session, user: UsuarioCreate):
@@ -72,55 +82,9 @@ def create_user(db: Session, user: UsuarioCreate):
     return db_user
 
 
-async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: SessionLocal = Depends(get_db),
-):
-    """
-    Obtém o usuário atual a partir do token de autenticação.
-
-    Args:
-        token (str): Token de autenticação.
-        db (SessionLocal, optional): Sessão do banco de dados. obtido via Depends(get_db).
-
-    Returns:
-        Usuario: O usuário autenticado.
-
-    Raises:
-        HTTPException: Exceção HTTP com código 401 se as credenciais não puderem ser validadas.
-    """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get('sub')
-        if email is None:
-            raise credentials_exception()
-    except JWTError:
-        raise credentials_exception()
-
-    user = get_user_by_email(db=db, email_user=email)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-# função não usada por nenhum endpoint (ignorar o coverage report)
-def get_account_by_id(db: Session, user_id: int):
-    """
-    Obtém uma conta pelo seu ID.
-
-    Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID da conta.
-
-    Returns:
-        Usuario: O usuário correspondente ao ID especificado.
-    """
-    return db.query(Usuario).filter(Usuario.id == user_id).first()
-
-
 def get_current_admin_user(
+    db: Session,
     current_user: Usuario = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ):
     """
     Obtém o usuário autenticado com privilégios de administrador.
@@ -140,7 +104,7 @@ def get_current_admin_user(
     return current_user
 
 
-# função não usada por nenhum endpoint (ignorar o coverage report)
+# FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE USUARIO (IGNORAR NO COVERAGE)
 def is_admin(user_id: int, db: Session):
     """
     Verifica se o usuário possui privilégios de administrador.
@@ -161,22 +125,31 @@ def is_admin(user_id: int, db: Session):
     return user.tipo.tipo == 'administrador'
 
 
-def get_user_reservations(user_id: int, db: Session):
+def get_user_reservas(
+    db: Session, user_id: int, skip: int = 0, limit: int = 100
+) -> list[Reservation]:
     """
-    Obtém as áreas associadas a um usuário pelo seu ID.
+    Retorna uma lista de reservas de um usuário a partir do banco de dados.
 
     Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID do usuário.
+    db (Session): Sessão do banco de dados.
+    user_id (int): ID do usuário cujas reservas serão retornadas.
+    skip (int): Quantidade de reservas a serem ignorados.
+    limit (int): Quantidade máxima de reservas a serem retornados.
 
-    Returns:
-        Tuple[List[Area], int]: Lista de áreas associadas ao usuário e a quantidade de áreas.
+    Retorna:
+    list[reservas]: Lista de reservas do usuário.
     """
-    user = get_user_by_id(user_id, db)
-    if user:
-        Reservation = user.reservations
-        return Reservation, len(Reservation)
-    return None, 0
+    reservas = (
+        db.query(Reservation)
+        .filter(Reservation.usuario_id == user_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    if not reservas:
+        return None
+    return reservas
 
 
 def update_user_password(db: Session, user: Usuario, new_password: str):
@@ -204,7 +177,10 @@ def delete_user(db: Session, user: Usuario):
     db.commit()
 
 
-def delete_user_by_id(user_id: int, db: Session):
+def delete_user_by_id(
+    user_id: int,
+    db: Session,
+):
     """
     Deleta um usuário.
 
@@ -217,7 +193,8 @@ def delete_user_by_id(user_id: int, db: Session):
         db.delete(user)
         db.commit()
         return True
-    return False
+    else:
+        raise user_not_found_exception()
 
 
 def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
@@ -230,11 +207,11 @@ def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
         user_update (UsuarioCreate): Os novos detalhes do usuário.
 
     Returns:
-        Usuario: O usuário atualizado.
+        Usuario: O usuário atualizado ou None se o usuário não for encontrado.
     """
     user = get_user_by_id(user_id, db)
     if not user:
-        raise user_not_found_exception()
+        return None
     for dado, valor in usuario.model_dump().items():
         setattr(user, dado, valor)
     user.senha = auth.get_password_hash(usuario.senha)

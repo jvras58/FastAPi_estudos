@@ -1,21 +1,22 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
+from jose import jwt
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# from app.security.auth import get_password_hash
-import app.security.auth as auth
-from app.area.area_model import Area
+import app.config.auth as auth
+from app.api.area.area_model import Area
+from app.api.reserva.reserva_model import Reservation
+from app.api.tipo_usuario.tipo_usuario_model import TipoUser as tipo
+from app.api.usuario.usuario_model import Usuario as User
+from app.config.config import get_settings
+from app.database.base import Base
+from app.database.get_db import get_db as get_session
 from app.main import app
-from app.reserva.reserva_model import Reservation
-from app.usuario.usuario_model import TipoUser as tipo
-from app.usuario.usuario_model import Usuario as User
-from database.base import Base
-from database.get_db import get_db as get_session
 
 
 @pytest.fixture
@@ -298,3 +299,36 @@ def ReservaUserCliente(session):
     session.commit()
     session.refresh(reserva_user)
     return reserva_user
+
+
+@pytest.fixture
+def invalid_token():
+    """
+    Retorna um token JWT inválido para os testes.
+
+    Returns:
+        str: Um token JWT inválido.
+    """
+    return 'invalid_token'
+
+
+# TODO: REFAZER ESSE FIXTURE ABAIXO:
+@pytest.fixture
+def valid_token_email(userAdmin):
+    """
+    Retorna um token JWT válido que não contém um campo 'sub'.
+
+    Args:
+        userAdmin: Fixture que cria um usuário administrador.
+
+    Returns:
+        str: Um token JWT válido sem um campo 'sub' Fazendo assim o token gerado não está associado a nenhum usuario especifico.
+    """
+    data = {
+        'exp': datetime.utcnow()
+        + timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(
+        data, get_settings().SECRET_KEY, algorithm=get_settings().ALGORITHM
+    )
+    return token

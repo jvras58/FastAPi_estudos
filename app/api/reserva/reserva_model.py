@@ -1,9 +1,14 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database.base import Base
+from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.api.area.area_model import Area
+    from app.api.usuario.usuario_model import Usuario
 
 
 class Reservation(Base):
@@ -23,5 +28,7 @@ class Reservation(Base):
     area_id: Mapped[int] = mapped_column(Integer, ForeignKey('areas.id'))
     usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey('usuario.id'))
 
-    usuario = relationship('Usuario', back_populates='reservations')
-    areas = relationship('Area', back_populates='reservations')
+    usuario: Mapped['Usuario'] = relationship(
+        'Usuario', back_populates='reservations'
+    )
+    areas: Mapped['Area'] = relationship(back_populates='reservations')

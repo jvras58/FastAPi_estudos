@@ -7,7 +7,7 @@ def credentials_exception():
     """
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Could not validate credentials',
+        detail='Não foi possível validar as credenciais',
         headers={'WWW-Authenticate': 'Bearer'},
     )
 
@@ -32,11 +32,14 @@ def is_not_adm_exception():
     )
 
 
-def user_not_found_exception():
+def sem_permissao_exception():
     """
-    Representa um erro de falta de usuario .
+    Representa um erro de falta de permissão .
     """
-    return HTTPException(status_code=404, detail='User not found')
+    return HTTPException(
+        status_code=403,
+        detail='Usuário não tem permissão para realizar essa ação',
+    )
 
 
 def senha_antiga_incorreta_exception():
@@ -59,11 +62,18 @@ def senha_vazia_exception():
     )
 
 
-def user_not_found1_exception():
+def user_not_found_exception():
     """
-    Representa um erro de senha vazia .
+    Representa um erro de não encontrado .
     """
     return HTTPException(status_code=404, detail='Usuário não encontrado')
+
+
+def email_ja_registrado_exception():
+    """
+    Representa um erro de email já registrado .
+    """
+    return HTTPException(status_code=400, detail='E-mail já registrado')
 
 
 def usuario_nao_encontrado_ou_nao_autenticado_exception():
@@ -79,28 +89,25 @@ def area_nao_encontrada_exception():
     """
     Representa um erro de area não encontrada .
     """
-    return HTTPException(status_code=400, detail='Area não existe')
-
-
-def area_not_found_exception():
-    """
-    Representa um erro de area não encontrada .
-    """
-    return HTTPException(status_code=404, detail='Area not found')
+    return HTTPException(
+        status_code=404, detail='Area não existe ou não encontrada'
+    )
 
 
 def area_existente_exception():
     """
     Representa um erro de area já existente .
     """
-    return HTTPException(status_code=400, detail='Área já existe')
+    return HTTPException(status_code=409, detail='Área já existe')
 
 
 def reserva_nao_encontrada_exception():
     """
     Representa um erro de reserva não encontrada .
     """
-    return HTTPException(status_code=404, detail='Reservation not found')
+    return HTTPException(
+        status_code=404, detail='Reserva não existe ou encontrada'
+    )
 
 
 def reserva_choque_horario_exception():
@@ -109,4 +116,15 @@ def reserva_choque_horario_exception():
     """
     return HTTPException(
         status_code=400, detail='Horário indiponível para essa Área'
+    )
+
+
+def Incorrect_username_or_password():
+    """
+    Representa um erro de acesso ao token por Incorrect username ou password .
+    """
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Usuário ou senha incorretos',
+        headers={'WWW-Authenticate': 'Bearer'},
     )
