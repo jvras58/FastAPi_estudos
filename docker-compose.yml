@@ -1,0 +1,33 @@
+version: '3'
+services:
+# banco de dados
+  banco:
+    image: postgres:14.8-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5439:5432"
+# alembic para gerenciar as migrações
+  alembic:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    volumes:
+      - .:/code
+    depends_on:
+      - banco
+    environment:
+      DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@banco:5432/postgres'
+# aplicação
+  app:
+    build: .
+    command: ["poetry", "run", "uvicorn", "--host", "0.0.0.0", "app.main:app"]
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - alembic
+    environment:
+      DATABASE_URL: 'postgresql+psycopg2://postgres:postgres@banco:5432/postgres'

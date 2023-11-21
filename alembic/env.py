@@ -35,7 +35,7 @@ if config.config_file_name is not None:
 from app.database.base import Base
 
 app_models = [
-    'app.api.security.tipo_usuario.tipo_usuario_model',
+    'app.api.tipo_usuario.tipo_usuario_model',
     'app.api.usuario.usuario_model',
     'app.api.area.area_model',
     'app.api.reserva.reserva_model',
