@@ -53,7 +53,14 @@ run = 'uvicorn app.main:app --reload'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=app -vv'
 post_test = 'coverage html'
-docker='docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest'
+db = 'alembic upgrade head'
+db_down = 'alembic downgrade -1'
+db_migrate = 'alembic revision --autogenerate -m "migration"'
+container='docker run -d -p 5439:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest'
+compose = 'docker-compose up -d'
+compose_down = 'docker-compose down'
+dockerfile = 'docker build -t app-fastapi . && docker run -d -p 8000:8000 app-fastapi'
+dockerfile_down = 'docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)'
 
 [build-system]
 requires = ["poetry-core"]
