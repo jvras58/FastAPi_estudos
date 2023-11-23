@@ -1,10 +1,11 @@
-name: Pipeline
-on: [push, pull_request]
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
     steps:
       - name: Copia os arquivos do repo
         uses: actions/checkout@v3
@@ -22,8 +23,3 @@ jobs:
 
       - name: Rodar os testes
         run: poetry run task test --cov-report=xml
-
-      - name: Subir cobertura para o codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
