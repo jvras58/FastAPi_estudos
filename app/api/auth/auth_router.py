@@ -11,7 +11,6 @@ from app.api.usuario.usuario_model import Usuario
 from app.config.auth import authenticate, create_access_token
 from app.config.config import get_settings
 from app.database.get_db import get_db
-from app.Exceptions.exceptions import Incorrect_username_or_password
 
 router_auth = APIRouter()
 
@@ -38,24 +37,29 @@ async def login_for_access_token(
     Raises:
         HTTPException(401): Se o nome de usuário ou a senha forem incorretos.
     """
-    user = authenticate(
+    auth_result = authenticate(
         db=db, email=form_data.username, password=form_data.password
     )
-    if not user:
-        raise Incorrect_username_or_password()
+    print('print do auth_result:', auth_result)
     access_token_expires = timedelta(
         minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES
     )
     access_token = create_access_token(
-        data={'sub': user.email}, expires_delta=access_token_expires
+        data={
+            'sub': auth_result['user'].email,
+            'permissions': auth_result['permissions'],
+        },
+        expires_delta=access_token_expires,
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
 @router_auth.post('/refresh_token', response_model=Token)
 def refresh_access_token(
-    user: Current_User,
+    current_user: dict = Depends(get_current_user),
 ):
-    new_access_token = create_access_token(data={'sub': user.email})
+    new_access_token = create_access_token(
+        data={'sub': current_user['user'].email}
+    )
 
     return {'access_token': new_access_token, 'token_type': 'bearer'}

@@ -1,53 +1,18 @@
 from datetime import datetime
+from unittest.mock import patch
 
+import pytest
 from dados_teste import DadosTeste_usuario
+from fastapi import HTTPException
 from sqlalchemy import select
 
 import app.config.auth as auth
 from app.api.reserva.reserva_schema import ReservationBase
-from app.api.tipo_usuario.tipo_usuario_model import TipoUser as tipo
+from app.api.usuario.crud_usuario import delete_user_by_id
 from app.api.usuario.usuario_model import Usuario
 from app.api.usuario.usuario_schemas import UsuarioBase
 
 # executa os teste: pytest test/test_usuario.py
-
-
-def test_estrutura_do_banco_creat_tipo_adm(session):
-    """
-    Testa a criação de um novo tipo de usuário 'cliente' no banco de dados.
-    Verifica se o tipo foi criado corretamente e se é possível recuperá-lo do banco.
-
-    Args:
-        session: objeto de sessão do SQLAlchemy.
-    """
-    tipo_user = tipo(
-        id=1,
-        tipo='administrador',
-    )
-    session.add(tipo_user)
-    session.commit()
-    session.refresh(tipo_user)
-    user = session.scalar(select(tipo).where(tipo.tipo == 'administrador'))
-    assert user.tipo == 'administrador'
-
-
-def test_estrutura_do_banco_creat_tipo_cliente(session):
-    """
-    Testa a criação de um novo tipo de usuário 'cliente' no banco de dados.
-    Verifica se o tipo foi criado corretamente e se é possível recuperá-lo do banco.
-
-    Args:
-        session: objeto de sessão do SQLAlchemy.
-    """
-    tipo_user = tipo(
-        id=2,
-        tipo='cliente',
-    )
-    session.add(tipo_user)
-    session.commit()
-    session.refresh(tipo_user)
-    user = session.scalar(select(tipo).where(tipo.tipo == 'cliente'))
-    assert user.tipo == 'cliente'
 
 
 def test_estrutura_do_banco_creat_userAdmin(session, userTipoAdmin):
@@ -73,66 +38,18 @@ def test_estrutura_do_banco_creat_userAdmin(session, userTipoAdmin):
     user = session.query(Usuario).filter(Usuario.nome == 'adm test').first()
     assert user.nome == 'adm test'
     assert auth.verify_password(clr_password, user.senha)
+
     assert user.tipo_id == 1
     assert user.email == 'adm.test@example.com'
 
 
-def test_estrutura_do_banco_creat_userCliente(session, userTipoClient):
-    """
-    Testa a criação de um usuário cliente no banco de dados.
-
-    Verifica se o usuário foi criado corretamente e se suas informações estão corretas.
-    Args:
-        session: objeto de sessão do SQLAlchemy.
-        userTipoClient: fixture que retorna um usuário do tipo 'cliente'.
-    """
-    clr_password = 'senhacliente'
-    new_user = Usuario(
-        nome='cliente test',
-        tipo_id=userTipoClient.id,
-        email='cliente.test@example.com',
-        senha=auth.get_password_hash(clr_password),
+def test_read_users_me(client, userTipoAdmin, userAdmin, tokenadmin):
+    response = client.get(
+        '/users/permissions',
+        headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    session.add(new_user)
-    session.commit()
-    Usuario.clear_password = clr_password
-    user = session.scalar(
-        select(Usuario).where(Usuario.nome == 'cliente test')
-    )
-    assert user.nome == 'cliente test'
-    assert user.tipo_id == 2
-    assert user.email == 'cliente.test@example.com'
-    assert auth.verify_password(clr_password, user.senha)
-
-
-def test_post_create_tipo_usuario_adm(client):
-    """
-    Testa a criação de um tipo de usuário administrador via requisição POST.
-    Verifica se a resposta da requisição tem código de status 200 e se o JSON retornado é igual aos dados do tipo de usuário criado.
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-    """
-
-    tipo_usuario_data_adm = DadosTeste_usuario.tipo_usuario_adm()
-    response = client.post('/tipos_usuario', json=tipo_usuario_data_adm)
     assert response.status_code == 200
-    assert response.json() == tipo_usuario_data_adm
-
-
-def test_post_create_tipo_usuario_cliente(client):
-    """
-    Testa a criação de um tipo de usuário cliente via requisição POST.
-
-    Verifica se a resposta da requisição tem código de status 200 e se o JSON retornado é igual aos dados do tipo de usuário criado.
-
-    Args:
-        client: objeto cliente do test_client(FASTAPI).
-    """
-    tipo_usuario_data_cliente = DadosTeste_usuario.tipo_usuario_cliente()
-    response = client.post('/tipos_usuario', json=tipo_usuario_data_cliente)
-    assert response.status_code == 200
-    assert response.json() == tipo_usuario_data_cliente
+    # assert response.json() == {'user': str(userAdmin), 'permissions': ['administrador']}
 
 
 def test_post_create_usuario_adm(client, userTipoAdmin):
@@ -148,9 +65,24 @@ def test_post_create_usuario_adm(client, userTipoAdmin):
     usuario_data = DadosTeste_usuario.usuario_adm()
     response = client.post('/usuarios', json=usuario_data)
     assert response.status_code == 200
-    assert auth.verify_password(
-        usuario_data['senha'], response.json()['senha']
-    )
+    assert response.json()['nome'] == usuario_data['nome']
+    assert response.json()['email'] == usuario_data['email']
+
+
+def test_post_create_usuario_adm_fail_tipo_user(client):
+    """
+    Testa a criação de um tipo de usuário administrador via requisição POST.
+
+    Verifica se a resposta da requisição tem código de status 200 e se o JSON da Senha é Igual ao retornado.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+    """
+    usuario_data = DadosTeste_usuario.usuario_adm()
+    response = client.post('/usuarios', json=usuario_data)
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'tipo de usuario não encontrado'
 
 
 def test_post_create_usuario_adm_fail(client, userTipoAdmin, userAdmin):
@@ -180,9 +112,8 @@ def test_post_create_usuario_cliente(client, userTipoClient):
     usuario_data = DadosTeste_usuario.usuario_cliente()
     response = client.post('/usuarios', json=usuario_data)
     assert response.status_code == 200
-    assert auth.verify_password(
-        usuario_data['senha'], response.json()['senha']
-    )
+    assert response.json()['nome'] == usuario_data['nome']
+    assert response.json()['email'] == usuario_data['email']
 
 
 def test_post_create_usuario_cliente_fail(client, userTipoClient, userCliente):
@@ -226,7 +157,6 @@ def test_post_create_user_adm(session, client, userTipoAdmin):
     assert user.email == 'marlos@ufpe.br'
     pwd_hash = user.senha
     assert auth.verify_password(clr_password, pwd_hash)
-    # esse eu deixei junto pq não tenho esse usuario dentro do fixture sorry chefinho
     response = client.post('/usuarios', json=new_user)
     assert response.status_code == 400
     assert response.json()['detail'] == 'E-mail já registrado'
@@ -257,7 +187,6 @@ def test_post_create_user_cliente(session, client, userTipoClient):
     assert user.email == 'jvras@ufpe.br'
     pwd_hash = user.senha
     assert auth.verify_password(clr_password, pwd_hash)
-    # esse eu deixei junto pq não tenho esse usuario dentro do fixture
     response = client.post('/usuarios', json=new_user)
     assert response.status_code == 400
     assert response.json()['detail'] == 'E-mail já registrado'
@@ -400,7 +329,6 @@ def test_get_user_not_admin_fail_no_permission(
     }
 
 
-# testes roubados de marlosribeiro
 def test_read_users(client, userTipoAdmin, userAdmin, tokenadmin):
     """
     Testa se é possível obter uma lista de usuários.
@@ -563,6 +491,30 @@ def test_update_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     }
     response_update_user = client.put(
         f'/usuarios/{userAdmin.id}',
+        json=usuario_data_update,
+        headers={'Authorization': f'Bearer {tokenadmin}'},
+    )
+    assert response_update_user.status_code == 200
+    assert response_update_user.json()['nome'] == usuario_data_update['nome']
+    assert response_update_user.json()['email'] == usuario_data_update['email']
+
+
+def test_update_user_adm_authenticado(
+    client, userTipoAdmin, userAdmin, tokenadmin
+):
+    """
+    Testa a atualização de um usuário com perfil de administrador.
+
+    Verifica se a atualização é bem-sucedida e se os dados atualizados são retornados corretamente.
+    """
+    usuario_data_update = {
+        'nome': 'adm test 1',
+        'tipo_id': 1,
+        'email': 'adm.test@example.com',
+        'senha': 'senhaadm',
+    }
+    response_update_user = client.put(
+        '/usuarios',
         json=usuario_data_update,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
@@ -922,6 +874,30 @@ def test_delete_user_id_cliente_fail_not_auth(
     )
     assert response_delete_user.status_code == 401
     assert response_delete_user.json() == {'detail': 'Not authenticated'}
+
+
+# TODO: uhm esses de mock deve ser mais interressante de fazer alguns testes diferentão inclusive daria ate pra fazer com os codigos de marlos que dão area de cobertura acho
+def test_delete_user_by_id_user_not_found(session):
+    """
+    Testa a função delete_user_by_id quando o usuário não é encontrado no banco de dados.
+
+    Verifica se a exceção user_not_found_exception é lançada.
+
+    Args:
+        None
+    """
+    # Cria um mock para get_user_by_id para retornar None
+    with patch(
+        'app.api.usuario.crud_usuario.get_user_by_id', return_value=None
+    ):
+        # Cria um mock para a sessão do SQLAlchemy
+        # Espera que a exceção user_not_found_exception seja lançada
+        with pytest.raises(HTTPException) as excinfo:
+            delete_user_by_id(
+                1, session
+            )  # Chama a função delete_user_by_id com um ID de usuário e o objeto de sessão de banco de dados
+        assert excinfo.value.status_code == 404
+        assert excinfo.value.detail == 'Usuário não encontrado'
 
 
 def test_delete_user_cliente(

@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # SECRETS
     SECRET_KEY: str
 
+    # Permissões
+    ADMINISTRADOR: str = 'administrador'
+    CLIENTE: str = 'cliente'
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.area.area_model import Area
 from app.api.area.area_schema import AreaCreate
 from app.database.get_db import get_db
-from app.Exceptions.exceptions import area_existente_exception
+from app.utils.Exceptions.exceptions import area_existente_exception
 
 Session = Annotated[Session, Depends(get_db)]
 
@@ -77,7 +77,6 @@ def create_area(db: Session, area: AreaCreate):
     Raises:
         HTTPException: Se o usuário não for encontrado, não for um administrador ou se a área já existir.
     """
-    # TODO: função que verifica se o usuario autenticado é do tipo adm (só pra testar mesmo já que marlos disse que se ele chegou até aqui não vai adiantar de nada kkk)
 
     # Verifica se a área já existe pelo nome
     area_exist = get_area_by_name(area.nome, db)

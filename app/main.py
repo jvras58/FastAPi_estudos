@@ -8,9 +8,7 @@ from app.api.area.area_router import router_area as area_control
 from app.api.auth.auth_router import router_auth as auth_token
 
 # reservas
-from app.api.reserva.reserva_router import (
-    router_reserva as reserva_control,
-)
+from app.api.reserva.reserva_router import router_reserva as reserva_control
 
 # tipo usuario
 from app.api.tipo_usuario.tipo_usuario_router import (
@@ -43,7 +41,7 @@ app.add_middleware(
 )
 
 
-@app.get('/', tags=['Hellou wordi'])
+@app.get('/', tags=['Hello World'])
 def read_root():
     return {'Hello': 'World'}
 

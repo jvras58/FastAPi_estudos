@@ -1,11 +1,18 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
+
+
+class UsuarioPublic(BaseModel):
+    nome: str
+    email: str
 
 
 class UsuarioCreate(BaseModel):
     nome: str
-    tipo_id: int
     email: str
     senha: str
+    tipo_id: Optional[int] = 2
     model_config = ConfigDict(from_attributes=True)
 
 

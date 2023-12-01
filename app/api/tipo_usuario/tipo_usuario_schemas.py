@@ -8,3 +8,7 @@ class TipoUserBase(BaseModel):
 
 class TipoUserCreate(TipoUserBase):
     pass
+
+
+class TipoList(BaseModel):
+    tipos: list[TipoUserBase]

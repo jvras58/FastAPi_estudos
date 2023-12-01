@@ -52,6 +52,7 @@ def test_create_area_adm(client, userTipoAdmin, userAdmin, tokenadmin):
         'covered': 'Sim',
         'foto_url': 'https://example.com/quadra_volei.jpg',
     }
+    print(tokenadmin)
     response = client.post(
         '/areas',
         json=area_data,
@@ -105,6 +106,39 @@ def test_create_area_cliente(
     """
     Teste para criar uma area por um usuário cliente.
     a API retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoClient: fixture que retorna um usuário do tipo 'cliente'.
+        userCliente: fixture que retorna um usuário tipo 'cliente'.
+        tokencliente: token de autenticação JWT para o usuário cliente.
+    """
+    area_data = {
+        'nome': 'Quadra de volei',
+        'descricao': 'Uma quadra de volei espaçosa',
+        'iluminacao': 'LED',
+        'tipo_piso': 'Liso',
+        'covered': 'Sim',
+        'foto_url': 'https://example.com/quadra_volei.jpg',
+    }
+    response = client.post(
+        '/areas',
+        json=area_data,
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()['detail']
+        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+    )
+
+
+def test_create_area_no_admin_exception(
+    client, userTipoClient, userCliente, tokencliente
+):
+    """
+    Teste para criar uma área por um usuário não administrador.
+    A API deve retornar o erro 403 com a resposta 'Sem permissão para acessar essa rota.'
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
@@ -255,6 +289,30 @@ def test_get_area_by_id_fail(
     assert response.json()['detail'] == 'Area não existe ou não encontrada'
 
 
+def test_get_area_by_id_no_admin_exception(
+    client, userTipoClient, AreaUserAdmin, tokencliente
+):
+    """
+    Teste para obter uma área por ID por um usuário não administrador.
+    A API deve retornar o erro 403 com a resposta 'Sem permissão para acessar essa rota.'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoClient: fixture que retorna um usuário do tipo 'cliente'.
+        AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+        tokencliente: token de autenticação JWT para o usuário cliente.
+    """
+    response = client.get(
+        f'/areas/{AreaUserAdmin.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()['detail']
+        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+    )
+
+
 def test_update_area(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
     """
     Testa o endpoint de atualizar a area
@@ -287,6 +345,38 @@ def test_update_area(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
     assert response.json()['covered'] == 'Sim'
     assert (
         response.json()['foto_url'] == 'https://example.com/quadra_tenis.jpg'
+    )
+
+
+def test_update_area_not_admin(
+    client, userTipoClient, AreaUserAdmin, tokencliente
+):
+    """
+    Testa o endpoint de atualizar a area
+    a api retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+        tokencliente: token de autenticação JWT para o usuário cliente.
+    """
+    new_area = {
+        'nome': 'Quadra de tenis',
+        'descricao': 'Uma quadra de tenis espaçosa',
+        'iluminacao': 'LED',
+        'tipo_piso': 'Liso',
+        'covered': 'Sim',
+        'foto_url': 'https://example.com/quadra_tenis.jpg',
+    }
+    response = client.put(
+        f'/areas/{AreaUserAdmin.id}',
+        json=new_area,
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()['detail']
+        == 'Permissão negada. Somente administradores podem acessar esta rota.'
     )
 
 
@@ -338,6 +428,29 @@ def test_delete_area(
     )
     assert response.status_code == 200
     assert response.json() == {'detail': 'Área deletada com sucesso'}
+
+
+def test_delete_area_not_admin(
+    client, userTipoClient, AreaUserAdmin, tokencliente
+):
+    """
+    Testa o endpoint de deletar a area pelo id dessa area
+    a api retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+        tokencliente: token de autenticação JWT para o usuário cliente.
+    """
+    response = client.delete(
+        f'/areas/{AreaUserAdmin.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()['detail']
+        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+    )
 
 
 def test_delete_area_fail(client, userTipoAdmin, AreaUserAdmin, tokenadmin):

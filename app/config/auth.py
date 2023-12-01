@@ -7,6 +7,7 @@ from jose import jwt
 import app.api.auth.crud_auth as crud_auth
 from app.config.config import get_settings
 from app.database.get_db import SessionLocal, get_db
+from app.utils.Exceptions.exceptions import Incorrect_username_or_password
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -20,17 +21,46 @@ def get_password_hash(password: str) -> str:
 
 
 def authenticate(
-    email: str, password: str, db: SessionLocal = Depends(get_db)
-):
+    email: str,
+    password: str,
+    db: SessionLocal = Depends(get_db),
+) -> dict | bool:
+    """
+    Autentica um usuário com base em seu email e senha.
+
+    Args:
+        email (str): O email do usuário.
+        password (str): A senha do usuário.
+        db (SessionLocal, opcional): A sessão do banco de dados. Padrão é Depends(get_db).
+
+    Returns:
+        dict: Um dicionário contendo o usuário autenticado e suas permissões.
+        False: Se o usuário não for encontrado ou a senha estiver incorreta.
+    """
+    # Obtém o usuário pelo email
     user = crud_auth.get_user_by_email(db=db, email_user=email)
+    # Verifica se o usuário existe e se a senha está correta
     if not user:
-        return False
+        raise Incorrect_username_or_password()
     if not verify_password(password, user.senha):
-        return False
-    return user
+        raise Incorrect_username_or_password()
+    # Obtém as permissões do usuário
+    permissions = crud_auth.get_user_permissions(db=db, user_id=user.id)
+    return {'user': user, 'permissions': permissions}
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(*, data: dict, expires_delta: timedelta | None = None):
+    """
+    Cria um token de acesso JWT.
+
+    Args:
+        data (dict): Um dicionário contendo os dados que serão incluídos no token.
+        expires_delta (timedelta, optional): A quantidade de tempo até o token expirar.
+            Se None, o token expirará após 15 minutos.
+
+    Returns:
+        str: O token de acesso JWT codificado.
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta

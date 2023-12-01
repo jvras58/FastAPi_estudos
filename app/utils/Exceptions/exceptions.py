@@ -69,6 +69,15 @@ def user_not_found_exception():
     return HTTPException(status_code=404, detail='Usuário não encontrado')
 
 
+def usertipo_not_found_exception():
+    """
+    Representa um erro de não encontrado .
+    """
+    return HTTPException(
+        status_code=404, detail='tipo de usuario não encontrado'
+    )
+
+
 def email_ja_registrado_exception():
     """
     Representa um erro de email já registrado .
@@ -128,3 +137,31 @@ def Incorrect_username_or_password():
         detail='Usuário ou senha incorretos',
         headers={'WWW-Authenticate': 'Bearer'},
     )
+
+
+def Unauthorized():
+    """
+    Representa um erro de acesso ao token por Incorrect username ou password .
+    """
+    return HTTPException(
+        status_code=status.HTTP_STATUS.HTTP_401_UNAUTHORIZED,
+        detail='Unauthorized',
+    )
+
+
+class ObjectNotFoundException(Exception):
+    """
+    Representa um erro quando o usuário com determinado ID não é encontrado.
+    """
+
+    def __init__(self, obj_type: str, obj_id: str):
+        super().__init__(f'{obj_type} with ID [{obj_id}] not found')
+
+
+class IntegrityValidationException(Exception):
+    """
+    Representa um erro de validação de integridade de dados.
+    """
+
+    def __init__(self, exc_msg: str):
+        super().__init__(exc_msg)

@@ -5,22 +5,26 @@ from sqlalchemy.orm import Session
 
 import app.api.area.crud_area as crud_area
 from app.api.area.area_model import Area
-from app.api.area.area_schema import AreaCreate, AreaList
-from app.api.usuario.crud_usuario import get_current_admin_user
+from app.api.area.area_schema import AreaCreate, AreaList, AreaPublic
+from app.api.auth.crud_auth import get_current_user, verify_permission
 from app.api.usuario.usuario_model import Usuario
+from app.config.config import get_settings
 from app.database.get_db import get_db
-from app.Exceptions.exceptions import area_nao_encontrada_exception
+from app.utils.Exceptions.exceptions import (
+    area_nao_encontrada_exception,
+    is_not_validation_adm_exception,
+)
 
 router_area = APIRouter()
 
 Session = Annotated[Session, Depends(get_db)]
-current_admin_user = Annotated[Usuario, Depends(get_current_admin_user)]
+Current_User = Annotated[Usuario, Depends(get_current_user)]
 
 
-@router_area.post('/areas')
+@router_area.post('/areas', response_model=AreaPublic)
 def create_area(
     area: AreaCreate,
-    current_admin_user: current_admin_user,
+    Current_User: Current_User,
     db: Session,
 ):
     """
@@ -33,6 +37,10 @@ def create_area(
     Returns:
         Area: A área criada.
     """
+    if not verify_permission(
+        Current_User['permissions'], get_settings().ADMINISTRADOR
+    ):
+        raise is_not_validation_adm_exception()
     return crud_area.create_area(db=db, area=area)
 
 
@@ -76,7 +84,7 @@ def get_area_by_name(nome: str, db: Session):
 @router_area.get('/areas/{area_id}')
 def get_area(
     area_id: int,
-    current_admin_user: current_admin_user,
+    Current_User: Current_User,
     db: Session,
 ):
     """
@@ -84,11 +92,16 @@ def get_area(
 
     Args:
         area_id (int): O ID da área a ser obtida.
-        db (Session, optional): Uma sessão do banco de dados. obtida via Depends(get_db).
+        current_user (Current_User): O usuário atual.
+        db (Session, optional): Uma sessão do banco de dados obtida via Depends(get_db).
 
     Returns:
         Area: Os detalhes da área encontrada.
     """
+    if not verify_permission(
+        Current_User['permissions'], get_settings().ADMINISTRADOR
+    ):
+        raise is_not_validation_adm_exception()
     db_area = crud_area.get_area_by_id(area_id, db)
     if db_area is None:
         raise area_nao_encontrada_exception()
@@ -99,7 +112,7 @@ def get_area(
 def update_area(
     area_id: int,
     area: AreaCreate,
-    current_admin_user: current_admin_user,
+    Current_User: Current_User,
     db: Session,
 ):
     """
@@ -113,6 +126,10 @@ def update_area(
     Returns:
         Area: Os detalhes atualizados da área.
     """
+    if not verify_permission(
+        Current_User['permissions'], get_settings().ADMINISTRADOR
+    ):
+        raise is_not_validation_adm_exception()
     updated_area = crud_area.update_area(area_id, area, db)
     if updated_area is None:
         raise area_nao_encontrada_exception()
@@ -122,7 +139,7 @@ def update_area(
 @router_area.delete('/areas/{area_id}')
 def delete_area(
     area_id: int,
-    current_admin_user: current_admin_user,
+    Current_User: Current_User,
     db: Session,
 ):
     """
@@ -135,6 +152,10 @@ def delete_area(
     Returns:
         dict: Uma mensagem indicando se a área foi deletada com sucesso.
     """
+    if not verify_permission(
+        Current_User['permissions'], get_settings().ADMINISTRADOR
+    ):
+        raise is_not_validation_adm_exception()
     delete_area = crud_area.delete_area(area_id, db)
     if delete_area:
         return {'detail': 'Área deletada com sucesso'}

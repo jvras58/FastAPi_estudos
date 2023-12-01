@@ -184,10 +184,10 @@ def test_create_reserva_adm_fail_usuario_nao_existe(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Usuário não encontrado ou não autenticado'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -268,44 +268,6 @@ def test_create_reserva_adm_fail_hora_indisponivel(
     assert response.json()['detail'] == 'Horário indiponível para essa Área'
 
 
-# def test_create_reserva_fail_sem_permissao(
-#     client, userTipoAdmin, userAdmin, AreaUserAdmin, tokenadmin
-# ):
-#     """
-#     Teste para criar uma reserva com um usuário que não tem permissão.
-#     Verifica se a API retorna o status code 403 e a mensagem de erro 'Sem permissão'
-#     quando é feita uma requisição de criação da reserva é feita por um usuário que não tem permissão.
-
-#     Args:
-#         client: objeto cliente do test_client(FASTAPI).
-#         userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
-#         userAdmin: fixture que retorna um usuário tipo 'administrador'.
-#         AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
-#         tokenadmin: token de autenticação JWT para o usuário administrador.
-#     """
-#     reserva_data = {
-#         'valor': 10,
-#         'reserva_data': '2023-10-23T12:00:00',
-#         'hora_inicio': '2023-10-23T14:00:00',
-#         'hora_fim': '2023-10-23T16:00:00',
-#         'justificacao': 'Jogo de Equipe',
-#         'reserva_tipo': 'Jogo',
-#         'status': 'Em análise',
-#         'area_id': AreaUserAdmin.id,
-#         'usuario_id': userAdmin.id + 1,
-#     }
-#     response = client.post(
-#         '/reservas',
-#         json=reserva_data,
-#         headers={'Authorization': f'Bearer {tokenadmin}'},
-#     )
-#     assert response.status_code == 403
-#     assert (
-#         response.json()['detail']
-#         == 'Usuário não tem permissão para realizar essa ação'
-#     )
-
-
 def test_create_reserva_cliente(
     client, userTipoClient, userCliente, AreaUserAdmin, tokencliente
 ):
@@ -381,10 +343,10 @@ def test_create_reserva_cliente_fail_usuario_nao_existe(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Usuário não encontrado ou não autenticado'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -728,6 +690,55 @@ def test_update_reserva_cliente_fail_not_found(
     assert response.json()['detail'] == 'Reserva não existe ou encontrada'
 
 
+# TODO: Refatorar essa rota para usuarios adm poderem atualizar reservas de outros usuarios
+def test_update_reserva_cliente_fail_sem_permissao(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    tokenadmin,
+    userTipoClient,
+    userCliente2,
+    tokencliente,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+):
+    """
+    Testa o endpoint de atualizar as reservas do usuario
+    Verifica se a reserva pelo (ID) existe e se o usuário tem permissão para atualizá-la.
+    Neste caso, o usuário não tem permissão, então ele retorna o status code 403 e a mensagem de erro 'Sem permissão para atualizar a reserva.'
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+        userCliente: fixture que retorna um usuário tipo 'cliente'.
+        AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+        ReservaUserAdmin: fixture que retorna uma reserva criada por um usuário do tipo 'administrador'.
+        tokencliente: token de autenticação JWT para o usuário cliente.
+    """
+    reserva_data = {
+        'valor': 0,
+        'reserva_data': '2023-11-23T12:00:00',
+        'hora_inicio': '2023-11-23T14:00:00',
+        'hora_fim': '2023-11-23T16:00:00',
+        'justificacao': 'Jogo de Equipe 2',
+        'reserva_tipo': 'Jogo 2',
+        'status': 'Em análise',
+        'area_id': AreaUserAdmin.id,
+        'usuario_id': userCliente2.id,
+    }
+    response = client.put(
+        f'/reservas/{ReservaUserAdmin.id}',
+        json=reserva_data,
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert (
+        response.json()['detail']
+        == 'Usuário não tem permissão para realizar essa ação'
+    )
+
+
 def test_delete_reserva_adm(
     client,
     userTipoAdmin,
@@ -754,6 +765,39 @@ def test_delete_reserva_adm(
     )
     assert response.status_code == 200
     assert response.json() == {'detail': 'Reserva deletada com sucesso'}
+
+
+def test_delete_reserva_admin_passando_tokencliente(
+    client,
+    userTipoAdmin,
+    userAdmin,
+    AreaUserAdmin,
+    ReservaUserAdmin,
+    tokenadmin,
+    userTipoClient,
+    userCliente,
+    tokencliente,
+):
+    """
+    Testa verificar se uma reserva pode ser excluída com sucesso.
+    Verifica se a reserva pelo (ID) existe e se ela foi excluída com sucesso.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        userAdmin: fixture que retorna um usuário tipo 'administrador'.
+        AreaUserAdmin: fixture que retorna uma área criada por um usuário do tipo 'administrador'.
+        ReservaUserAdmin: fixture que retorna uma reserva criada por um usuário do tipo 'administrador'.
+        tokenadmin: token de autenticação JWT para o usuário administrador.
+    """
+    response = client.delete(
+        f'/reservas/{ReservaUserAdmin.id}',
+        headers={'Authorization': f'Bearer {tokencliente}'},
+    )
+    assert response.status_code == 403
+    assert response.json() == {
+        'detail': 'Usuário não tem permissão para realizar essa ação'
+    }
 
 
 def test_delete_reserva_adm_fail_reserva_not_found(

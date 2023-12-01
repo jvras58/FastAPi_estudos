@@ -11,6 +11,10 @@ class AreaCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AreaPublic(AreaCreate):
+    pass
+
+
 class AreaBase(AreaCreate):
     id: int
 

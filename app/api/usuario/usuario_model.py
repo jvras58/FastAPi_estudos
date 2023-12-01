@@ -18,7 +18,9 @@ class Usuario(Base):
     nome: Mapped[str] = mapped_column(String(100))
     senha: Mapped[str] = mapped_column(String(200))
     tipo_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey('tipouser.id'), nullable=False
+        Integer,
+        ForeignKey('tipouser.id'),
+        nullable=False,
     )
     tipo: Mapped['TipoUser'] = relationship(back_populates='usuarios')
     reservations: Mapped['Reservation'] = relationship(

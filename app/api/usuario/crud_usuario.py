@@ -4,16 +4,11 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 import app.config.auth as auth
-from app.api.auth.crud_auth import get_current_user
 from app.api.reserva.reserva_model import Reservation
 from app.api.usuario.usuario_model import Usuario
 from app.api.usuario.usuario_schemas import UsuarioCreate
 from app.database.get_db import get_db
-from app.Exceptions.exceptions import (
-    is_not_adm_exception,
-    is_not_validation_adm_exception,
-    user_not_found_exception,
-)
+from app.utils.Exceptions.exceptions import user_not_found_exception
 
 Session = Annotated[Session, Depends(get_db)]
 
@@ -74,55 +69,16 @@ def create_user(db: Session, user: UsuarioCreate):
     Returns:
         Usuario: O usuário criado.
     """
-    db_user = Usuario(**user.model_dump())
+    user_dict = user.model_dump()
+    if 'tipo_id' not in user_dict or user_dict['tipo_id'] is None:
+        user_dict['tipo_id'] = 2
+
+    db_user = Usuario(**user_dict)
     db_user.senha = auth.get_password_hash(db_user.senha)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
-
-
-def get_current_admin_user(
-    db: Session,
-    current_user: Usuario = Depends(get_current_user),
-):
-    """
-    Obtém o usuário autenticado com privilégios de administrador.
-
-    Args:
-        current_user (Usuario): O usuário atual autenticado.
-        db (Session): A sessão do banco de dados para consulta.
-
-    Returns:
-        Usuario: O usuário autenticado com privilégios de administrador.
-
-    Raises:
-        HTTPException(403): Se o usuário não tiver privilégios de administrador.
-    """
-    if not is_admin(current_user.id, db):
-        raise is_not_validation_adm_exception()
-    return current_user
-
-
-# FUNÇÃO OCIOSA NÃO UTLIZADA NO ENDPOINT DE USUARIO (IGNORAR NO COVERAGE)
-def is_admin(user_id: int, db: Session):
-    """
-    Verifica se o usuário possui privilégios de administrador.
-
-    Args:
-        user_id (int): O ID do usuário a ser verificado.
-        db (Session): A sessão do banco de dados para consulta.
-
-    Returns:
-        bool: True se o usuário é um administrador, False caso contrário.
-
-    Raises:
-        HTTPException: Se o usuário não for encontrado no banco de dados.
-    """
-    user = get_user_by_id(user_id, db)
-    if user is None:
-        raise is_not_adm_exception()
-    return user.tipo.tipo == 'administrador'
 
 
 def get_user_reservas(

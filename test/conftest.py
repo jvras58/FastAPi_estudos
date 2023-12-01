@@ -169,6 +169,32 @@ def userCliente(session):
 
 
 @pytest.fixture
+def userCliente2(session):
+    """
+    Cria uma ingessão de usuarioCliente para os testes.
+
+    Args:
+        session (Session): Uma instância de Session do SQLAlchemy.
+
+    Returns:
+        usuarioCliente: Uma instância de usuarioCliente do sistema.
+    """
+    clr_password = 'senhacliente2'
+    user = User(
+        nome='cliente test2',
+        tipo_id=2,
+        email='cliente.test2@example.com',
+        senha=auth.get_password_hash(clr_password),
+    )
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    user.clear_password = clr_password
+    return user
+
+
+@pytest.fixture
 def tokenadmin(client, userAdmin):
     """
     cria uma ingessão que efetua login no usuário administrador e retorna um token de acesso.
@@ -312,7 +338,6 @@ def invalid_token():
     return 'invalid_token'
 
 
-# TODO: REFAZER ESSE FIXTURE ABAIXO:
 @pytest.fixture
 def valid_token_email(userAdmin):
     """

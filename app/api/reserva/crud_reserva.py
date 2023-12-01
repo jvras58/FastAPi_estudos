@@ -181,8 +181,6 @@ def delete_reservation(reservation_id: int, db: Session):
         HTTPException: Retorna um erro HTTP 404 se a área não for encontrada.
     """
     db_reserva = get_reservation_by_id(reservation_id, db)
-    if not db_reserva:
-        return False
     db.delete(db_reserva)
     db.commit()
     return True
