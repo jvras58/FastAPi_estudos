@@ -14,24 +14,16 @@ class CredentialsException(HTTPException):
         )
 
 
-def is_not_adm_exception():
+class sem_permissao_exception(HTTPException):
     """
-    Representa um erro de falta de privilegios do usuário adm .
+    Representa um erro de falta de permissão.
     """
-    return HTTPException(
-        status_code=404,
-        detail='Usuário com privilegios de adm não encontrado',
-    )
 
-
-def sem_permissao_exception():
-    """
-    Representa um erro de falta de permissão .
-    """
-    return HTTPException(
-        status_code=403,
-        detail='Usuário não tem permissão para realizar essa ação',
-    )
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            detail='Usuário não tem permissão para realizar essa ação',
+        )
 
 
 class Permission_Exception(HTTPException):
@@ -109,15 +101,6 @@ class Incorrect_username_or_password(HTTPException):
         )
 
 
-class IncorrectCredentialException(Exception):
-    """
-    Representao o erro de Login e Senha inválidos.
-    """
-
-    def __init__(self):
-        super().__init__('Incorrect email or password')
-
-
 class ObjectAlreadyExistException(Exception):
     """
     Representa um erro quando se tentar cadastrar um usuário com o mesmo username.
@@ -154,12 +137,3 @@ class PermissionException(Exception):
 
     def __init__(self, obj_type: str):
         super().__init__(f'{obj_type} conflict permission')
-
-
-class IntegrityValidationException(Exception):
-    """
-    Representa um erro de validação de integridade de dados.
-    """
-
-    def __init__(self, exc_msg: str):
-        super().__init__(exc_msg)
