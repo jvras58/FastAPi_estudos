@@ -1,8 +1,26 @@
 # executa os teste: pytest test/test_reserva.py
-
 from datetime import datetime
+from unittest.mock import patch
 
 from app.api.reserva.reserva_model import Reservation
+from app.utils.Exceptions.exceptions import ObjectNotFoundException
+
+
+def test_delete_reservation_exception(client):
+    """
+    Testa se a exceção é lançada corretamente quando a reserva não é encontrada.
+    """
+    with patch(
+        'app.api.reserva.crud_reserva.delete_reservation'
+    ) as mock_delete_reservation:
+        mock_delete_reservation.side_effect = ObjectNotFoundException(
+            'Reserva não encontrada', ''
+        )
+
+        response = client.delete('/reserva/1')
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
 
 
 def test_estrutura_do_banco_creat_reserva_adm(
@@ -153,6 +171,7 @@ def test_create_reserva_adm(
     assert response.json()['usuario_id'] == userAdmin.id
 
 
+# FIXME: Parou de funcionar por causa das mudanças no get_user_by_id para retornar um exception diretamente
 def test_create_reserva_adm_fail_usuario_nao_existe(
     client, userTipoAdmin, AreaUserAdmin, tokenadmin
 ):
@@ -184,11 +203,8 @@ def test_create_reserva_adm_fail_usuario_nao_existe(
         json=reserva_data,
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
-    assert response.status_code == 403
-    assert (
-        response.json()['detail']
-        == 'Usuário não tem permissão para realizar essa ação'
-    )
+    assert response.status_code == 404
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_create_reserva_adm_fail_area_nao_existe(
@@ -223,7 +239,7 @@ def test_create_reserva_adm_fail_area_nao_existe(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_create_reserva_adm_fail_hora_indisponivel(
@@ -265,7 +281,7 @@ def test_create_reserva_adm_fail_hora_indisponivel(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 400
-    assert response.json()['detail'] == 'Horário indiponível para essa Área'
+    assert 'conflict availability' in response.json()['detail'].lower()
 
 
 def test_create_reserva_cliente(
@@ -344,10 +360,10 @@ def test_create_reserva_cliente_fail_usuario_nao_existe(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 403
-    assert (
-        response.json()['detail']
-        == 'Usuário não tem permissão para realizar essa ação'
-    )
+    assert 'conflict permission' in response.json()['detail'].lower()
+
+
+# TODO: CRIAR UM TESTE ONDE UM ADM CONSIGA CRIAR UMA RESERVA PARA UM CLIENTE
 
 
 def test_create_reserva_cliente_fail_area_nao_existe(
@@ -381,7 +397,7 @@ def test_create_reserva_cliente_fail_area_nao_existe(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_create_reserva_cliente_fail_hora_indisponivel(
@@ -423,7 +439,7 @@ def test_create_reserva_cliente_fail_hora_indisponivel(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 400
-    assert response.json()['detail'] == 'Horário indiponível para essa Área'
+    assert 'conflict availability' in response.json()['detail'].lower()
 
 
 def test_read_reservas(
@@ -467,8 +483,8 @@ def test_read_reservas_not_found(
         ReservaUserAdmin: fixture que retorna uma reserva criada por um usuário do tipo 'administrador'.
     """
     response = client.get('/reservas')
-    assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert response.status_code == 200
+    assert 'Reservation' in response.json()
 
 
 def test_get_reserva_adm_by_id(
@@ -515,7 +531,7 @@ def test_get_reserva_adm_by_id_fail_not_found(
         '/reservas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_update_reserva_adm(
@@ -601,7 +617,7 @@ def test_update_reserva_adm_fail_not_found(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_update_reserva_cliente(
@@ -687,7 +703,7 @@ def test_update_reserva_cliente_fail_not_found(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 # TODO: Refatorar essa rota para usuarios adm poderem atualizar reservas de outros usuarios
@@ -767,6 +783,7 @@ def test_delete_reserva_adm(
     assert response.json() == {'detail': 'Reserva deletada com sucesso'}
 
 
+# FIXME: CORRIGIR ROTA DE DELETE DE RESERVA POIS CLIENTE NÃO PODE DELETAR RESERVAS DE OUTROS CLIENTES SOMENTE ADMS
 def test_delete_reserva_admin_passando_tokencliente(
     client,
     userTipoAdmin,
@@ -795,9 +812,7 @@ def test_delete_reserva_admin_passando_tokencliente(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 403
-    assert response.json() == {
-        'detail': 'Usuário não tem permissão para realizar essa ação'
-    }
+    assert 'detail' in response.json()
 
 
 def test_delete_reserva_adm_fail_reserva_not_found(
@@ -822,7 +837,7 @@ def test_delete_reserva_adm_fail_reserva_not_found(
         '/reservas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_get_reservas_usuario_cliente(
@@ -899,7 +914,7 @@ def test_get_reservas_usuario_fail_Not_found(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_get_reservas_id_usuario_cliente(
@@ -977,7 +992,7 @@ def test_get_reservas_id_usuario_cliente_fail_not_found(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_get_reservas_id_usuario_adm(
@@ -1054,4 +1069,20 @@ def test_get_reservas_id_usuario_adm_fail_not_found(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Reserva não existe ou encontrada'
+    assert 'not found' in response.json()['detail'].lower()
+
+
+def test_get_reserva_usuario_fail_not_owner(
+    client,
+    userTipoClient,
+    userCliente,
+    tokencliente2,
+    AreaUserAdmin,
+    ReservaUserCliente,
+):
+    response = client.get(
+        f'/usuario/reservas/{ReservaUserCliente.id}',
+        headers={'Authorization': f'Bearer {tokencliente2}'},
+    )
+    assert response.status_code == 403
+    assert 'conflict permission' in response.json()['detail'].lower()

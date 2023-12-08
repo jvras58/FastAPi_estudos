@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends  # , HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,8 @@ from app.api.usuario.usuario_model import Usuario
 from app.config.auth import authenticate, create_access_token
 from app.config.config import get_settings
 from app.database.get_db import get_db
+
+# from app.utils.Exceptions.exceptions import IncorrectCredentialException
 
 router_auth = APIRouter()
 
@@ -37,10 +39,10 @@ async def login_for_access_token(
     Raises:
         HTTPException(401): Se o nome de usuário ou a senha forem incorretos.
     """
+
     auth_result = authenticate(
         db=db, email=form_data.username, password=form_data.password
     )
-    print('print do auth_result:', auth_result)
     access_token_expires = timedelta(
         minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES
     )

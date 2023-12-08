@@ -1,25 +1,17 @@
 from fastapi import HTTPException, status
 
 
-def credentials_exception():
+class CredentialsException(HTTPException):
     """
     Representa um erro de validação de credencial do usuário.
     """
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Não foi possível validar as credenciais',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
 
-
-def is_not_validation_adm_exception():
-    """
-    Representa um erro de validação de credencial do usuário adm .
-    """
-    return HTTPException(
-        status_code=403,
-        detail='Permissão negada. Somente administradores podem acessar esta rota.',
-    )
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Não foi possível validar as credenciais',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
 
 
 def is_not_adm_exception():
@@ -42,111 +34,97 @@ def sem_permissao_exception():
     )
 
 
-def senha_antiga_incorreta_exception():
+class Permission_Exception(HTTPException):
     """
-    Representa um erro de senha antiga incorreta .
+    Representa um erro de falta de permissão.
     """
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Senha antiga incorreta',
-    )
+
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            detail='Usuário não tem permissão nenhuma',
+        )
 
 
-def senha_vazia_exception():
+class IncorrectOldPasswordException(HTTPException):
     """
-    Representa um erro de senha vazia .
+    Representa um erro de senha antiga incorreta.
     """
-    return HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail='Nova senha não pode ser vazia',
-    )
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Senha antiga incorreta',
+        )
 
 
-def user_not_found_exception():
+class EmptyPasswordException(HTTPException):
     """
-    Representa um erro de não encontrado .
+    Representa um erro de senha vazia.
     """
-    return HTTPException(status_code=404, detail='Usuário não encontrado')
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Nova senha não pode ser vazia',
+        )
 
 
-def usertipo_not_found_exception():
+# TODO: provavelmente isso vai deve ser transformado em um exception que nem os outros
+class UserNotFoundException(HTTPException):
     """
-    Representa um erro de não encontrado .
+    Representa um erro de usuário não encontrado.
     """
-    return HTTPException(
-        status_code=404, detail='tipo de usuario não encontrado'
-    )
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found',
+        )
 
 
-def email_ja_registrado_exception():
+# TODO: provavelmente isso vai deve ser transformado em um exception que nem os outros
+class EmailAlreadyRegistered(HTTPException):
     """
-    Representa um erro de email já registrado .
+    Representa um erro de email já registrado.
     """
-    return HTTPException(status_code=400, detail='E-mail já registrado')
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='E-mail já registrado',
+        )
 
 
-def usuario_nao_encontrado_ou_nao_autenticado_exception():
+class Incorrect_username_or_password(HTTPException):
     """
-    Representa um erro de user não autenticado ou não encontrado .
+    Representa um erro de acesso ao token por Incorrect username ou password.
     """
-    return HTTPException(
-        status_code=400, detail='Usuário não encontrado ou não autenticado'
-    )
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='incorrect username or password',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
 
 
-def area_nao_encontrada_exception():
+class IncorrectCredentialException(Exception):
     """
-    Representa um erro de area não encontrada .
+    Representao o erro de Login e Senha inválidos.
     """
-    return HTTPException(
-        status_code=404, detail='Area não existe ou não encontrada'
-    )
+
+    def __init__(self):
+        super().__init__('Incorrect email or password')
 
 
-def area_existente_exception():
+class ObjectAlreadyExistException(Exception):
     """
-    Representa um erro de area já existente .
+    Representa um erro quando se tentar cadastrar um usuário com o mesmo username.
     """
-    return HTTPException(status_code=409, detail='Área já existe')
 
-
-def reserva_nao_encontrada_exception():
-    """
-    Representa um erro de reserva não encontrada .
-    """
-    return HTTPException(
-        status_code=404, detail='Reserva não existe ou encontrada'
-    )
-
-
-def reserva_choque_horario_exception():
-    """
-    Representa um erro de choque de hora para area escolhida .
-    """
-    return HTTPException(
-        status_code=400, detail='Horário indiponível para essa Área'
-    )
-
-
-def Incorrect_username_or_password():
-    """
-    Representa um erro de acesso ao token por Incorrect username ou password .
-    """
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Usuário ou senha incorretos',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
-
-
-def Unauthorized():
-    """
-    Representa um erro de acesso ao token por Incorrect username ou password .
-    """
-    return HTTPException(
-        status_code=status.HTTP_STATUS.HTTP_401_UNAUTHORIZED,
-        detail='Unauthorized',
-    )
+    def __init__(self, obj_type: str, obj_id: str):
+        super().__init__(f'Object {obj_type} already exist with id [{obj_id}]')
 
 
 class ObjectNotFoundException(Exception):
@@ -156,6 +134,26 @@ class ObjectNotFoundException(Exception):
 
     def __init__(self, obj_type: str, obj_id: str):
         super().__init__(f'{obj_type} with ID [{obj_id}] not found')
+
+
+class ObjectConflitException(Exception):
+    """
+    Representa um erro quando um objeto entra em conflito com outro
+    """
+
+    def __init__(self, obj_type: str, obj_id: str):
+        super().__init__(
+            f'{obj_type} with ID [{obj_id}] conflict availability'
+        )
+
+
+class PermissionException(Exception):
+    """
+    Representa um erro quando uma permissão está ausente
+    """
+
+    def __init__(self, obj_type: str):
+        super().__init__(f'{obj_type} conflict permission')
 
 
 class IntegrityValidationException(Exception):

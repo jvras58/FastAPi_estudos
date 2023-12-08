@@ -239,6 +239,28 @@ def tokencliente(client, userCliente):
 
 
 @pytest.fixture
+def tokencliente2(client, userCliente2):
+    """
+    cria uma ingessão que efetua login no usuário cliente e retorna um token de acesso.
+
+    Args:
+        client: o cliente de teste.
+        userCliente: O usuário cliente.
+
+    Returns:
+        O token de acesso como uma string.
+    """
+    response = client.post(
+        '/token',
+        data={
+            'username': userCliente2.email,
+            'password': userCliente2.clear_password,
+        },
+    )
+    return response.json()['access_token']
+
+
+@pytest.fixture
 def AreaUserAdmin(session):
     """
     Cria uma ingessão de Area para os testes.

@@ -3,6 +3,13 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
+# TODO: Criado so para contemplar um teste de crud de usuario test_create_user_without_tipo_id
+class UsuarioCreateWithoutTipoId(BaseModel):
+    nome: str
+    email: str
+    senha: str
+
+
 class UsuarioPublic(BaseModel):
     nome: str
     email: str

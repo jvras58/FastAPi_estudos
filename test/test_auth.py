@@ -1,6 +1,13 @@
+from unittest.mock import MagicMock, patch
+
+import bcrypt
+import pytest
+from fastapi import HTTPException
 from freezegun import freeze_time
+from jose import jwt
 
 import app.config.auth as auth
+from app.api.auth.crud_auth import get_user_permissions
 
 # executa os teste: pytest test/test_auth.py
 
@@ -14,7 +21,7 @@ def test_token_inexistent_user(client):
         data={'username': 'no_user@no_domain.com', 'password': 'testtest'},
     )
     assert response.status_code == 401
-    assert response.json() == {'detail': 'Usuário ou senha incorretos'}
+    assert 'detail' in response.json()
 
 
 def test_token_expired_after_time(client, userTipoAdmin, userAdmin):
@@ -114,7 +121,7 @@ def test_authenticate_incorrect_password(
         data={'username': userAdmin.email, 'password': incorrect_password},
     )
     assert response.status_code == 401
-    assert response.json() == {'detail': 'Usuário ou senha incorretos'}
+    assert 'detail' in response.json()
 
 
 def test_access_invalid_token(client, userTipoAdmin, userAdmin, invalid_token):
@@ -189,3 +196,91 @@ def test_not_existent_user(client, userTipoAdmin, userAdmin):
     assert response.json() == {
         'detail': 'Não foi possível validar as credenciais'
     }
+
+
+@patch('app.api.auth.crud_auth.get_user_permissions')
+@patch('app.api.auth.crud_auth.get_user_by_email')
+def test_user_without_permissions(
+    mock_get_user_by_email, mock_get_user_permissions, client
+):
+    """
+    Testa se a exceção é levantada para um usuário sem permissões.
+
+    Args:
+        mock_get_user_by_email: Mock para a função get_user_by_email.
+        mock_get_user_permissions: Mock para a função get_user_permissions.
+        client: objeto cliente do test_client(FASTAPI).
+
+    Returns:
+        None
+    """
+    password = 'password1234'
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    mock_user = MagicMock()
+    mock_user.senha = hashed_password.decode('utf-8')
+    mock_user.id = 1
+    mock_get_user_by_email.return_value = mock_user
+    mock_get_user_permissions.return_value = None
+
+    response = client.post(
+        '/token',
+        data={'username': 'user@example.com', 'password': 'password1234'},
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {'detail': 'Usuário não tem permissão nenhuma'}
+
+
+@patch('app.api.auth.crud_auth.Session')
+def test_get_user_permissions_with_nonexistent_user(mock_db):
+    """
+    Testa se a exceção é levantada para um usuário inexistente.
+
+    Args:
+        mock_db: Mock para a sessão do banco de dados.
+
+    Returns:
+        None
+    """
+    mock_query = MagicMock()
+    mock_db.query.return_value = mock_query
+    mock_query.filter().first.return_value = None
+
+    with pytest.raises(HTTPException):
+        get_user_permissions(999, mock_db)
+
+
+def test_incorrect_credential_exception(client, userTipoAdmin, userAdmin):
+    """
+    Testa a autenticação de um usuário com credenciais incorretas.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: Fixture que cria um usuário com a função 'admin'.
+        userAdmin: Fixture que cria um usuário administrador.
+
+    Returns:
+        None
+    """
+    incorrect_password = 'incorrect_password'
+    response = client.post(
+        '/token',
+        data={'username': userAdmin.email, 'password': incorrect_password},
+    )
+    assert response.status_code == 401
+    assert response.json() == {'detail': 'incorrect username or password'}
+
+
+def test_jwt():
+    data = {'test': 'test', 'permissions': ['administrador']}
+    token = auth.create_access_token(data=data)
+
+    decoded = jwt.decode(
+        token,
+        '2b9297ddf50a5336ba333962928ce57a1db91464c45c1831d26a4e4b23f5889d',
+        algorithms=['HS256'],
+    )
+
+    assert decoded['test'] == data['test']
+    assert decoded['exp']

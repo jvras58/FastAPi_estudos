@@ -1,5 +1,6 @@
 # executa os teste: pytest test/test_area.py
 
+
 from app.api.area.area_model import Area
 
 
@@ -52,7 +53,6 @@ def test_create_area_adm(client, userTipoAdmin, userAdmin, tokenadmin):
         'covered': 'Sim',
         'foto_url': 'https://example.com/quadra_volei.jpg',
     }
-    print(tokenadmin)
     response = client.post(
         '/areas',
         json=area_data,
@@ -69,6 +69,7 @@ def test_create_area_adm(client, userTipoAdmin, userAdmin, tokenadmin):
     )
 
 
+# TODO: MODELO DE COMO DEVE SER SEGUINDO O UM POUCO DO PADRÃO DE MARLOS
 def test_create_area_adm_fail(
     client, userTipoAdmin, AreaUserAdmin, userAdmin, tokenadmin
 ):
@@ -97,7 +98,7 @@ def test_create_area_adm_fail(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 409
-    assert response.json()['detail'] == 'Área já existe'
+    assert 'already exist with id' in response.json()['detail'].lower()
 
 
 def test_create_area_cliente(
@@ -105,7 +106,7 @@ def test_create_area_cliente(
 ):
     """
     Teste para criar uma area por um usuário cliente.
-    a API retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+    a API retorna o erro 403 com a resposta 'Usuário não tem permissão para realizar essa ação'
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
@@ -129,7 +130,7 @@ def test_create_area_cliente(
     assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -162,7 +163,7 @@ def test_create_area_no_admin_exception(
     assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -195,8 +196,8 @@ def test_read_areas_area_nao_existe(
         userAdmin: fixture que retorna um usuário tipo 'administrador'.
     """
     response = client.get('/areas')
-    assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert response.status_code == 200
+    assert 'areas' in response.json()
 
 
 def test_get_area_by_name(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
@@ -224,6 +225,7 @@ def test_get_area_by_name(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
     assert response.json()['id'] == 1
 
 
+# TODO: MODELO DE COMO DEVE SER SEGUINDO O UM POUCO DO PADRÃO DE MARLOS
 def test_get_area_by_name_fail(
     client, userTipoAdmin, AreaUserAdmin, tokenadmin
 ):
@@ -239,7 +241,7 @@ def test_get_area_by_name_fail(
     """
     response = client.get(f'/areas/nome/{AreaUserAdmin.iluminacao}')
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_get_area_by_id(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
@@ -286,7 +288,7 @@ def test_get_area_by_id_fail(
         '/areas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_get_area_by_id_no_admin_exception(
@@ -309,7 +311,7 @@ def test_get_area_by_id_no_admin_exception(
     assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -353,7 +355,7 @@ def test_update_area_not_admin(
 ):
     """
     Testa o endpoint de atualizar a area
-    a api retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+    a api retorna o erro 403 com a resposta 'Usuário não tem permissão para realizar essa ação'
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
@@ -376,7 +378,7 @@ def test_update_area_not_admin(
     assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -406,7 +408,7 @@ def test_update_area_fail(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()
 
 
 def test_delete_area(
@@ -435,7 +437,7 @@ def test_delete_area_not_admin(
 ):
     """
     Testa o endpoint de deletar a area pelo id dessa area
-    a api retorna o erro 403 com a resposta 'Permissão negada. Somente administradores podem acessar esta rota.'
+    a api retorna o erro 403 com a resposta 'Usuário não tem permissão para realizar essa ação'
 
     Args:
         client: objeto cliente do test_client(FASTAPI).
@@ -449,7 +451,7 @@ def test_delete_area_not_admin(
     assert response.status_code == 403
     assert (
         response.json()['detail']
-        == 'Permissão negada. Somente administradores podem acessar esta rota.'
+        == 'Usuário não tem permissão para realizar essa ação'
     )
 
 
@@ -467,4 +469,4 @@ def test_delete_area_fail(client, userTipoAdmin, AreaUserAdmin, tokenadmin):
         '/areas/3', headers={'Authorization': f'Bearer {tokenadmin}'}
     )
     assert response.status_code == 404
-    assert response.json()['detail'] == 'Area não existe ou não encontrada'
+    assert 'not found' in response.json()['detail'].lower()

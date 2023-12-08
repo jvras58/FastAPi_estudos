@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import app.api.auth.crud_auth as crud_auth
@@ -18,13 +18,12 @@ from app.config.auth import verify_password
 from app.config.config import get_settings
 from app.database.get_db import get_db
 from app.utils.Exceptions.exceptions import (
-    email_ja_registrado_exception,
-    reserva_nao_encontrada_exception,
+    EmailAlreadyRegistered,
+    EmptyPasswordException,
+    IncorrectOldPasswordException,
+    ObjectNotFoundException,
+    PermissionException,
     sem_permissao_exception,
-    senha_antiga_incorreta_exception,
-    senha_vazia_exception,
-    user_not_found_exception,
-    usertipo_not_found_exception,
 )
 
 router_usuario = APIRouter()
@@ -54,11 +53,13 @@ def create_usuario(usuario: UsuarioCreate, db: Session):
     Raises:
         HTTPException(400): Se o email já estiver registrado no sistema.
     """
-    if not crud_tipo_usuario.get_tipo_usuario(db, usuario.tipo_id):
-        raise usertipo_not_found_exception()
+    try:
+        crud_tipo_usuario.get_tipo_usuario(db, usuario.tipo_id)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
     db_user = crud_auth.get_user_by_email(db=db, email_user=usuario.email)
     if db_user:
-        raise email_ja_registrado_exception()
+        raise EmailAlreadyRegistered()
     return crud_usuario.create_user(db=db, user=usuario)
 
 
@@ -82,8 +83,6 @@ def read_users(
     dict: Dicionário contendo a lista de usuários.
     """
     users: list[Usuario] = crud_usuario.get_users(db, skip, limit)
-    if users is None:
-        raise user_not_found_exception()
     return {'users': users}
 
 
@@ -122,16 +121,19 @@ def get_user(
     Returns:
         Usuario: O usuário correspondente ao ID especificado.
     """
-    db_user = crud_usuario.get_user_by_id(user_id, db)
+    try:
+        user = crud_usuario.get_user_by_id(user_id, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
+    try:
+        if current_user['user'].id != user_id and not verify_permission(
+            current_user['permissions'], get_settings().ADMINISTRADOR
+        ):
+            raise PermissionException('user not permission')
+    except PermissionException as ex:
+        raise HTTPException(status_code=403, detail=ex.args[0]) from ex
 
-    if db_user is None:
-        raise user_not_found_exception()
-    if current_user['user'].id != user_id and not verify_permission(
-        current_user['permissions'], get_settings().ADMINISTRADOR
-    ):
-        raise sem_permissao_exception()
-
-    return db_user
+    return user
 
 
 # TODO: Refatorar esta rota para não precisar pegar o id do usuario é sim o usuario autenticado muito melhor...(na vez de usar o id usar o current_user: Type = Depends(crud_usuario.get_current_user) já temos algumas rotas que fazem isso mas não sei se aqui faria sentido sei la [@router_reserva.get('/usuario/reservas') usa veja se faz sentido])
@@ -155,17 +157,17 @@ def update_user(
     Returns:
         Usuario: O usuário com informações atualizadas.
     """
-    if current_user['user'].id != user_id and not verify_permission(
-        current_user['permissions'], get_settings().ADMINISTRADOR
-    ):
-        raise sem_permissao_exception()
-
-    user = crud_usuario.update_user(user_id, usuario, db)
-
-    if user is None:
-        raise user_not_found_exception()
-
-    return user
+    try:
+        if current_user['user'].id != user_id and not verify_permission(
+            current_user['permissions'], get_settings().ADMINISTRADOR
+        ):
+            raise PermissionException('Update user')
+    except PermissionException as ex:
+        raise HTTPException(status_code=403, detail=ex.args[0]) from ex
+    try:
+        return crud_usuario.update_user(user_id, usuario, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
 
 
 # CHECKING: Verificar se esta rota vale a pena manter ou se é melhor usar a rota de cima
@@ -188,7 +190,6 @@ def update_user_auth(
         Usuario: O usuário com informações atualizadas.
     """
     user_id = current_user['user'].id
-
     user = crud_usuario.update_user(user_id, usuario, db)
     return user
 
@@ -208,9 +209,8 @@ def get_user_reservations(
     Returns:
         List[reservas]: Lista de reservas associadas ao usuário.
     """
+
     reservations = crud_usuario.get_user_reservas(db, current_user['user'].id)
-    if reservations is None:
-        raise reserva_nao_encontrada_exception()
     return {'Reservation': reservations}
 
 
@@ -239,9 +239,9 @@ def update_senha(
     """
     user = Current_User['user']
     if not verify_password(old_password, user.senha):
-        raise senha_antiga_incorreta_exception()
+        raise IncorrectOldPasswordException()
     if not new_password:
-        raise senha_vazia_exception()
+        raise EmptyPasswordException()
     crud_usuario.update_user_password(db, user, new_password)
     return {'detail': 'Senha atualizada com sucesso'}
 
@@ -281,9 +281,12 @@ def delete_user(
     Returns:
         dict: Um dicionário indicando que o usuário foi deletado com sucesso.
     """
-    if crud_usuario.get_user_by_id(user_id, db) is None:
-        raise user_not_found_exception()
-    elif current_user['user'].id == user_id or verify_permission(
+    try:
+        crud_usuario.get_user_by_id(user_id, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
+
+    if current_user['user'].id == user_id or verify_permission(
         current_user['permissions'], get_settings().ADMINISTRADOR
     ):
         crud_usuario.delete_user_by_id(user_id, db)

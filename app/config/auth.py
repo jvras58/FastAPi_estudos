@@ -7,7 +7,10 @@ from jose import jwt
 import app.api.auth.crud_auth as crud_auth
 from app.config.config import get_settings
 from app.database.get_db import SessionLocal, get_db
-from app.utils.Exceptions.exceptions import Incorrect_username_or_password
+from app.utils.Exceptions.exceptions import (
+    Incorrect_username_or_password,
+    Permission_Exception,
+)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -46,6 +49,8 @@ def authenticate(
         raise Incorrect_username_or_password()
     # Obtém as permissões do usuário
     permissions = crud_auth.get_user_permissions(db=db, user_id=user.id)
+    if permissions is None:
+        raise Permission_Exception()
     return {'user': user, 'permissions': permissions}
 
 

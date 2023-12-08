@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import app.api.area.crud_area as crud_area
@@ -11,8 +11,9 @@ from app.api.usuario.usuario_model import Usuario
 from app.config.config import get_settings
 from app.database.get_db import get_db
 from app.utils.Exceptions.exceptions import (
-    area_nao_encontrada_exception,
-    is_not_validation_adm_exception,
+    ObjectAlreadyExistException,
+    ObjectNotFoundException,
+    sem_permissao_exception,
 )
 
 router_area = APIRouter()
@@ -40,8 +41,11 @@ def create_area(
     if not verify_permission(
         Current_User['permissions'], get_settings().ADMINISTRADOR
     ):
-        raise is_not_validation_adm_exception()
-    return crud_area.create_area(db=db, area=area)
+        raise sem_permissao_exception()
+    try:
+        return crud_area.create_area(db=db, area=area)
+    except ObjectAlreadyExistException as ex:
+        raise HTTPException(status_code=409, detail=ex.args[0]) from ex
 
 
 @router_area.get('/areas', response_model=AreaList)
@@ -58,8 +62,6 @@ def read_areas(db: Session, skip: int = 0, limit: int = 100):
     dict: Dicionário contendo a lista de areas.
     """
     areas: list[Area] = crud_area.get_areas(db, skip, limit)
-    if areas is None:
-        raise area_nao_encontrada_exception()
     return {'areas': areas}
 
 
@@ -75,10 +77,11 @@ def get_area_by_name(nome: str, db: Session):
     Returns:
         Area:  A área encontrada com o nome correspondente, ou None se não for encontrada.
     """
-    db_area = crud_area.get_area_by_name(nome, db)
-    if db_area is None:
-        raise area_nao_encontrada_exception()
-    return db_area
+    try:
+        db_area = crud_area.get_area_by_name(nome, db)
+        return db_area
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
 
 
 @router_area.get('/areas/{area_id}')
@@ -101,11 +104,11 @@ def get_area(
     if not verify_permission(
         Current_User['permissions'], get_settings().ADMINISTRADOR
     ):
-        raise is_not_validation_adm_exception()
-    db_area = crud_area.get_area_by_id(area_id, db)
-    if db_area is None:
-        raise area_nao_encontrada_exception()
-    return db_area
+        raise sem_permissao_exception()
+    try:
+        return crud_area.get_area_by_id(area_id, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
 
 
 @router_area.put('/areas/{area_id}')
@@ -129,11 +132,11 @@ def update_area(
     if not verify_permission(
         Current_User['permissions'], get_settings().ADMINISTRADOR
     ):
-        raise is_not_validation_adm_exception()
-    updated_area = crud_area.update_area(area_id, area, db)
-    if updated_area is None:
-        raise area_nao_encontrada_exception()
-    return crud_area.update_area(area_id, area, db)
+        raise sem_permissao_exception()
+    try:
+        return crud_area.update_area(area_id, area, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
 
 
 @router_area.delete('/areas/{area_id}')
@@ -155,9 +158,10 @@ def delete_area(
     if not verify_permission(
         Current_User['permissions'], get_settings().ADMINISTRADOR
     ):
-        raise is_not_validation_adm_exception()
-    delete_area = crud_area.delete_area(area_id, db)
-    if delete_area:
-        return {'detail': 'Área deletada com sucesso'}
-    else:
-        raise area_nao_encontrada_exception()
+        raise sem_permissao_exception()
+
+    try:
+        crud_area.delete_area(area_id, db)
+    except ObjectNotFoundException as ex:
+        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
+    return {'detail': 'Área deletada com sucesso'}

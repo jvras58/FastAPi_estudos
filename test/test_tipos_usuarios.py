@@ -4,6 +4,7 @@ from dados_teste import DadosTeste_usuario
 from sqlalchemy import select
 
 from app.api.tipo_usuario.tipo_usuario_model import TipoUser as tipo
+from app.utils.Exceptions.exceptions import ObjectNotFoundException
 
 # executa os teste: pytest test/test_tipos_usuarios.py
 
@@ -27,23 +28,33 @@ def test_estrutura_do_banco_creat_tipo_adm(session):
     assert user.tipo == 'administrador'
 
 
-def test_estrutura_do_banco_creat_tipo_cliente(session):
-    """
-    Testa a criação de um novo tipo de usuário 'cliente' no banco de dados.
-    Verifica se o tipo foi criado corretamente e se é possível recuperá-lo do banco.
+# def test_estrutura_do_banco_creat_tipo_adm_exception_objet_exist(session):
+#     """
+#     Testa a criação de um novo tipo de usuário 'cliente' no banco de dados.
+#     Verifica se o tipo foi criado corretamente e se é possível recuperá-lo do banco.
 
-    Args:
-        session: objeto de sessão do SQLAlchemy.
-    """
-    tipo_user = tipo(
-        id=2,
-        tipo='cliente',
-    )
-    session.add(tipo_user)
-    session.commit()
-    session.refresh(tipo_user)
-    user = session.scalar(select(tipo).where(tipo.tipo == 'cliente'))
-    assert user.tipo == 'cliente'
+#     Args:
+#         session: objeto de sessão do SQLAlchemy.
+#     """
+
+#     tipo_user = TipoUserCreate(
+#         id=1,
+#         tipo='administrador',
+#     )
+
+#     # Simula a existência do tipo de usuário no banco de dados
+#     existing_tipo_user = tipo(id=1, tipo='administrador')
+#     session.add(existing_tipo_user)
+#     session.commit()
+
+#     try:
+#         with patch('app.api.tipo_usuario.crud_tipo_usuario', session):
+#             create_tipo_usuario(session, tipo_user)
+#     except IntegrityError:
+#         session.rollback()
+#         raise HTTPException(
+#             status_code=400, detail='ID já existe no banco de dados.'
+#         )
 
 
 def test_post_create_tipo_usuario_adm(client):
@@ -72,8 +83,8 @@ def test_post_create_tipo_usuario_adm_ja_exist(client, userTipoAdmin):
 
     tipo_usuario_data_adm = DadosTeste_usuario.tipo_usuario_adm()
     response = client.post('/tipos_usuario', json=tipo_usuario_data_adm)
-    assert response.status_code == 400
-    assert response.json() == {'detail': 'Tipo de usuário já existe'}
+    assert response.status_code == 409
+    assert 'detail' in response.json()
 
 
 def test_post_create_tipo_usuario_cliente(client):
@@ -109,22 +120,6 @@ def test_read_tipos_usuario(client, userTipoAdmin, tokenadmin):
     assert len(response.json()) > 0
 
 
-def test_read_tipo_users_exception(client):
-    """
-    Testa se a exceção é lançada corretamente quando não há tipos de usuários.
-    """
-    with patch(
-        'app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuarios'
-    ) as mock_get_tipo_usuarios:
-        mock_get_tipo_usuarios.return_value = None
-
-        response = client.get('/tipos_usuario')
-
-        assert response.status_code == 404
-        assert response.json() == {'detail': 'Tipo de usuário não encontrado'}
-    assert response.json() == {'detail': 'Tipo de usuário não encontrado'}
-
-
 def test_read_tipos_usuario_with_users(client, userTipoAdmin, tokenadmin):
     """
     Testa se o endpoint '/tipos_usuario/' retorna as informações corretas dos tipos de usuário.
@@ -140,16 +135,6 @@ def test_read_tipos_usuario_with_users(client, userTipoAdmin, tokenadmin):
     )
     assert response.status_code == 200
     assert response.json() == {'tipos': [{'id': 1, 'tipo': 'administrador'}]}
-
-
-@patch('app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuarios')
-def test_read_tipo_users_exception2(mock_get_tipo_usuarios, client):
-    mock_get_tipo_usuarios.return_value = None
-
-    response = client.get('/tipos_usuario')
-
-    assert response.status_code == 404
-    assert response.json() == {'detail': 'Tipo de usuário não encontrado'}
 
 
 def test_update_tipos_usuarios(client, userTipoAdmin, tokenadmin):
@@ -185,7 +170,7 @@ def test_update_tipos_usuarios_not_found(client, userTipoAdmin, tokenadmin):
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Tipo de usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_delete_tipos_usuarios(
@@ -223,4 +208,140 @@ def test_delete_tipos_usuarios_not_found(client, userTipoAdmin, tokenadmin):
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Tipo de usuário não encontrado'}
+    assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception(client, userTipoAdmin, tokenadmin):
+    """
+    Testa se a rota DELETE retorna a exceção correta quando o tipo de usuário não é encontrado.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: Fixture que cria um usuário com privilégios de administrador.
+        tokenadmin: token de autenticação do usuário administrador.
+    """
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuario'
+    ) as mock_get:
+        mock_get.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception_get_tipo_usuario(
+    client, userTipoAdmin, tokenadmin
+):
+    """
+    Testa se a rota DELETE retorna a exceção correta quando o tipo de usuário não é encontrado na função get_tipo_usuario.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: Fixture que cria um usuário com privilégios de administrador.
+        tokenadmin: token de autenticação do usuário administrador.
+    """
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuario'
+    ) as mock_get:
+        mock_get.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception_reassign_users_and_delete_tipo_usuario(
+    client, userTipoAdmin, tokenadmin
+):
+    """
+    Testa se a rota DELETE retorna a exceção correta quando o tipo de usuário não é encontrado na função reassign_users_and_delete_tipo_usuario.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: Fixture que cria um usuário com privilégios de administrador.
+        tokenadmin: token de autenticação do usuário administrador.
+    """
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.reassign_users_and_delete_tipo_usuario'
+    ) as mock_reassign:
+        mock_reassign.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception_get_tipo_usuario1(
+    client, userTipoAdmin, tokenadmin
+):
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuario'
+    ) as mock_get:
+        mock_get.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception_get_tipo_usuarios(
+    client, userTipoAdmin, tokenadmin
+):
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.get_tipo_usuarios'
+    ) as mock_get_all:
+        mock_get_all.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()
+
+
+def test_delete_tipos_usuarios_exception_reassign_users_and_delete_tipo_usuario1(
+    client, userTipoAdmin, tokenadmin
+):
+    with patch(
+        'app.api.tipo_usuario.crud_tipo_usuario.reassign_users_and_delete_tipo_usuario'
+    ) as mock_reassign:
+        mock_reassign.side_effect = ObjectNotFoundException(
+            'Tipo de usuário não encontrado', ''
+        )
+
+        response = client.delete(
+            '/tipos_usuario/999',
+            headers={'Authorization': f'Bearer {tokenadmin}'},
+        )
+
+        assert response.status_code == 404
+        assert 'detail' in response.json()

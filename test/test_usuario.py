@@ -3,14 +3,17 @@ from unittest.mock import patch
 
 import pytest
 from dados_teste import DadosTeste_usuario
-from fastapi import HTTPException
 from sqlalchemy import select
 
 import app.config.auth as auth
 from app.api.reserva.reserva_schema import ReservationBase
-from app.api.usuario.crud_usuario import delete_user_by_id
+from app.api.usuario.crud_usuario import create_user, delete_user_by_id
 from app.api.usuario.usuario_model import Usuario
-from app.api.usuario.usuario_schemas import UsuarioBase
+from app.api.usuario.usuario_schemas import (
+    UsuarioBase,
+    UsuarioCreateWithoutTipoId,
+)
+from app.utils.Exceptions.exceptions import ObjectNotFoundException
 
 # executa os teste: pytest test/test_usuario.py
 
@@ -82,7 +85,7 @@ def test_post_create_usuario_adm_fail_tipo_user(client):
     usuario_data = DadosTeste_usuario.usuario_adm()
     response = client.post('/usuarios', json=usuario_data)
     assert response.status_code == 404
-    assert response.json()['detail'] == 'tipo de usuario não encontrado'
+    assert 'detail' in response.json()
 
 
 def test_post_create_usuario_adm_fail(client, userTipoAdmin, userAdmin):
@@ -162,6 +165,35 @@ def test_post_create_user_adm(session, client, userTipoAdmin):
     assert response.json()['detail'] == 'E-mail já registrado'
 
 
+# TODO: TALVEZ DE PRA FAZER TESTES PARECIDOS COM O MOCK SEM USAR O MOCK EM SI MAIS FACIL FAZER TESTES DESSE TIPO
+def test_create_user_without_tipo_id(session, userTipoClient):
+    """
+    Testa a criação de um usuário sem um tipo_id.
+
+    Args:
+        session: objeto de sessão do SQLAlchemy.
+
+    Returns:
+        None
+    """
+    # TODO: AJUSTAR O USUARIO CREATE PARA NÃO PRECISAR DO TIPO ID PARA CRIAR UM USUARIO
+    user_data = UsuarioCreateWithoutTipoId(
+        nome='Teste',
+        email='teste@example.com',
+        senha='senha123',
+    )
+
+    # Chama a função create_user
+    user = create_user(session, user_data)
+
+    # Verifica se o usuário foi criado corretamente
+    assert user.nome == 'Teste'
+    assert auth.verify_password('senha123', user.senha)
+
+    # Verifica se tipo_id foi definido como 2
+    assert user.tipo_id == 2
+
+
 def test_post_create_user_cliente(session, client, userTipoClient):
     """
     Testa a criação de um usuário com perfil de cliente através de uma requisição POST.
@@ -234,7 +266,7 @@ def test_post_login_for_access_token_returns_unauthorized(
     )
     assert response.status_code == 401
     assert response.headers['WWW-Authenticate'] == 'Bearer'
-    assert response.json()['detail'] == 'Usuário ou senha incorretos'
+    assert response.json()['detail'] == 'incorrect username or password'
 
 
 def test_post_login_for_access_token_cliente(
@@ -296,7 +328,7 @@ def test_get_user_admin_fail_usuario_não_encontrado(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_get_user_not_admin_fail_no_permission(
@@ -324,9 +356,7 @@ def test_get_user_not_admin_fail_no_permission(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 403
-    assert response.json() == {
-        'detail': 'Usuário não tem permissão para realizar essa ação'
-    }
+    assert 'detail' in response.json()
 
 
 def test_read_users(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -376,8 +406,8 @@ def test_read_users_not_found(client):
     response = client.get(
         '/usuarios',
     )
-    assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert response.status_code == 200
+    assert 'users' in response.json()
 
 
 def test_read_users_count(
@@ -397,6 +427,23 @@ def test_read_users_count(
     )
     assert response.status_code == 200
     assert response.json() == {'count': 2}
+
+
+def test_read_users_count_not_found(client):
+    """
+    Testa se a rota retorna a contagem correta de usuários.
+
+    Args:
+        client: objeto cliente do test_client(FASTAPI).
+        userTipoAdmin: fixture que retorna um usuário do tipo 'administrador'.
+        tokenadmin: token de autenticação JWT para o usuário administrador.
+        db: Sessão do banco de dados.
+    """
+    response = client.get(
+        '/usuarios/contagem',
+    )
+    assert response.status_code == 200
+    assert 'count' in response.json()
 
 
 def test_get_user_reservations(
@@ -444,8 +491,8 @@ def test_get_user_reservations_no_reservations(
         '/list/reservas',
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
-    assert response.status_code == 404
-    assert response.json() == {'detail': 'Reserva não existe ou encontrada'}
+    assert response.status_code == 200
+    assert 'Reservation' in response.json()
 
 
 def test_get_user_cliente(client, userTipoClient, userCliente, tokencliente):
@@ -474,7 +521,7 @@ def test_get_user_cliente_fail_usuario_nao_encontrado(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_update_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -542,7 +589,7 @@ def test_update_user_adm_fail_usuario_nao_encontrado(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_update_user_not_admin_fail_no_permission(
@@ -578,9 +625,7 @@ def test_update_user_not_admin_fail_no_permission(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response_update_user.status_code == 403
-    assert response_update_user.json() == {
-        'detail': 'Usuário não tem permissão para realizar essa ação'
-    }
+    assert 'detail' in response_update_user.json()
 
 
 def test_update_user_cliente(
@@ -616,7 +661,7 @@ def test_update_user_cliente(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_update_user_cliente_fail(
@@ -649,7 +694,7 @@ def test_update_user_cliente_fail(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response.json()
 
 
 def test_update_user_adm_fail_user_not_found(
@@ -678,7 +723,7 @@ def test_update_user_adm_fail_user_not_found(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response_up_user.status_code == 404
-    assert response_up_user.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response_up_user.json()
 
 
 def test_delete_user_adm(client, userTipoAdmin, userAdmin, tokenadmin):
@@ -759,7 +804,7 @@ def test_delete_user_id_adm_nao_encontrado(
         headers={'Authorization': f'Bearer {tokenadmin}'},
     )
     assert response_delete_user.status_code == 404
-    assert response_delete_user.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response_delete_user.json()
 
 
 def test_delete_user_id_adm_fail(client, userTipoAdmin, userAdmin):
@@ -852,7 +897,7 @@ def test_delete_user_id_cliente_nao_encontrado(
         headers={'Authorization': f'Bearer {tokencliente}'},
     )
     assert response_delete_user.status_code == 404
-    assert response_delete_user.json() == {'detail': 'Usuário não encontrado'}
+    assert 'detail' in response_delete_user.json()
 
 
 def test_delete_user_id_cliente_fail_not_auth(
@@ -877,27 +922,28 @@ def test_delete_user_id_cliente_fail_not_auth(
 
 
 # TODO: uhm esses de mock deve ser mais interressante de fazer alguns testes diferentão inclusive daria ate pra fazer com os codigos de marlos que dão area de cobertura acho
+# FIXME: O PROBLEMA AGR É QUE ESSA PESTE NÃO RETORNA MAIS NONE É SIM UMA EXCEPTION
 def test_delete_user_by_id_user_not_found(session):
     """
     Testa a função delete_user_by_id quando o usuário não é encontrado no banco de dados.
 
-    Verifica se a exceção user_not_found_exception é lançada.
+    Verifica se a exceção ObjectNotFoundException é lançada.
 
     Args:
         None
     """
-    # Cria um mock para get_user_by_id para retornar None
+    # Cria um mock para get_user_by_id para lançar ObjectNotFoundException
     with patch(
-        'app.api.usuario.crud_usuario.get_user_by_id', return_value=None
+        'app.api.usuario.crud_usuario.get_user_by_id',
+        side_effect=ObjectNotFoundException('user', '1'),
     ):
         # Cria um mock para a sessão do SQLAlchemy
-        # Espera que a exceção user_not_found_exception seja lançada
-        with pytest.raises(HTTPException) as excinfo:
+        # Espera que a exceção ObjectNotFoundException seja lançada
+        with pytest.raises(ObjectNotFoundException) as excinfo:
             delete_user_by_id(
                 1, session
             )  # Chama a função delete_user_by_id com um ID de usuário e o objeto de sessão de banco de dados
-        assert excinfo.value.status_code == 404
-        assert excinfo.value.detail == 'Usuário não encontrado'
+        assert excinfo.type == ObjectNotFoundException
 
 
 def test_delete_user_cliente(

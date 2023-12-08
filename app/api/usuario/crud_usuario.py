@@ -8,7 +8,7 @@ from app.api.reserva.reserva_model import Reservation
 from app.api.usuario.usuario_model import Usuario
 from app.api.usuario.usuario_schemas import UsuarioCreate
 from app.database.get_db import get_db
-from app.utils.Exceptions.exceptions import user_not_found_exception
+from app.utils.Exceptions.exceptions import ObjectNotFoundException
 
 Session = Annotated[Session, Depends(get_db)]
 
@@ -27,9 +27,9 @@ def get_user_by_id(user_id: int, db: Session):
     Raises:
         HTTPException: Exceção HTTP com código 404 se o usuário não for encontrado.
     """
-    user = db.query(Usuario).filter(Usuario.id == user_id).first()
+    user = db.get(Usuario, user_id)
     if not user:
-        return None
+        raise ObjectNotFoundException('User', user_id)
     return user
 
 
@@ -45,17 +45,15 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[Usuario]:
     Retorna:
     list[Usuario]: Lista de usuários.
     """
-    users = db.query(Usuario).offset(skip).limit(limit).all()
-    if not users:
-        return None
-    return users
+    return db.query(Usuario).offset(skip).limit(limit).all()
 
 
 def get_users_count(db: Session):
     """
     Retorna a quantidade de usuários cadastrados no banco de dados.
     """
-    return db.query(Usuario).count()
+    user = db.query(Usuario).count()
+    return user
 
 
 def create_user(db: Session, user: UsuarioCreate):
@@ -103,8 +101,6 @@ def get_user_reservas(
         .limit(limit)
         .all()
     )
-    if not reservas:
-        return None
     return reservas
 
 
@@ -144,13 +140,13 @@ def delete_user_by_id(
         db (Session): Sessão do banco de dados.
         user_id (int): O ID do usuário a ser deletado.
     """
-    user = get_user_by_id(user_id, db)
-    if user:
+    try:
+        user = get_user_by_id(user_id, db)
+    except ObjectNotFoundException:
+        raise
+    else:
         db.delete(user)
         db.commit()
-        return True
-    else:
-        raise user_not_found_exception()
 
 
 def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
@@ -165,12 +161,14 @@ def update_user(user_id: int, usuario: UsuarioCreate, db: Session):
     Returns:
         Usuario: O usuário atualizado ou None se o usuário não for encontrado.
     """
-    user = get_user_by_id(user_id, db)
-    if not user:
-        return None
-    for dado, valor in usuario.model_dump().items():
-        setattr(user, dado, valor)
-    user.senha = auth.get_password_hash(usuario.senha)
-    db.commit()
-    db.refresh(user)
-    return user
+    try:
+        user = get_user_by_id(user_id, db)
+    except ObjectNotFoundException:
+        raise
+    else:
+        for dado, valor in usuario.model_dump().items():
+            setattr(user, dado, valor)
+        user.senha = auth.get_password_hash(usuario.senha)
+        db.commit()
+        db.refresh(user)
+        return user
