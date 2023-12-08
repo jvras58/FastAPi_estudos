@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
+import pytest
 from dados_teste import DadosTeste_usuario
 from sqlalchemy import select
 
+import app.api.tipo_usuario.crud_tipo_usuario as crud_tipo_user
 from app.api.tipo_usuario.tipo_usuario_model import TipoUser as tipo
 from app.utils.Exceptions.exceptions import ObjectNotFoundException
 
@@ -345,3 +347,22 @@ def test_delete_tipos_usuarios_exception_reassign_users_and_delete_tipo_usuario1
 
         assert response.status_code == 404
         assert 'detail' in response.json()
+
+
+def test_get_tipo_usuario_not_found(
+    session, client, userTipoAdmin, tokenadmin
+):
+    id = 999
+
+    with pytest.raises(ObjectNotFoundException):
+        crud_tipo_user.get_tipo_usuario(session, tipo_usuario_id=id)
+
+
+def test_delete_tipo_usuario_not_found(client):
+
+    id = 999
+
+    response = client.delete(f'/tipos_usuario/{id}')
+
+    assert response.status_code == 404
+    assert 'detail' in response.json()

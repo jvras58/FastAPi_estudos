@@ -96,23 +96,17 @@ def delete_tipo_usuario(tipo_usuario_id: int, db: Session):
         crud_tipo_user.get_tipo_usuario(db=db, tipo_usuario_id=tipo_usuario_id)
     except ObjectNotFoundException as ex:
         raise HTTPException(status_code=404, detail=ex.args[0]) from ex
-    try:
-        tipos_usuarios = crud_tipo_user.get_tipo_usuarios(
-            db, skip=0, limit=100
-        )
-    except ObjectNotFoundException as ex:
-        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
+
+    tipos_usuarios = crud_tipo_user.get_tipo_usuarios(db, skip=0, limit=100)
     tipos_ids = [tipo.id for tipo in tipos_usuarios]
     tipos_ids.remove(tipo_usuario_id)
     new_tipo_usuario_id = tipos_ids[0] if tipos_ids else None
-    try:
-        crud_tipo_user.reassign_users_and_delete_tipo_usuario(
-            db=db,
-            tipo_usuario_id=tipo_usuario_id,
-            new_tipo_usuario_id=new_tipo_usuario_id,
-        )
-    except ObjectNotFoundException as ex:
-        raise HTTPException(status_code=404, detail=ex.args[0]) from ex
+
+    crud_tipo_user.reassign_users_and_delete_tipo_usuario(
+        db=db,
+        tipo_usuario_id=tipo_usuario_id,
+        new_tipo_usuario_id=new_tipo_usuario_id,
+    )
     return {
         'detail': 'Tipo de usuário excluído com sucesso usuarios reatribuidos ao tipo de usuário padrão'
     }
