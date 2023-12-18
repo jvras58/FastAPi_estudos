@@ -1,4 +1,4 @@
-# import logging
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +20,7 @@ from app.api.tipo_usuario.tipo_usuario_router import (
 # usuario
 from app.api.usuario.usuario_router import router_usuario as user_control
 
-# from app.init_db import init_db
+
 
 # uvicorn app.main:app --reload  <-- inicia o servidor
 
@@ -60,10 +60,3 @@ app.include_router(area_control, tags=['Areas'])
 
 app.include_router(reserva_control, tags=['Reservas'])
 
-
-# @app.on_event('startup')
-# async def startup_event():
-#     try:
-#         init_db()
-#     except Exception as e:
-#         logging.error(f'banco offline: {e}')
