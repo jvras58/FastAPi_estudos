@@ -21,11 +21,11 @@
   "senha": "senhaadm"
 }
 ```
-- cliente:
+
+- cliente(por padrão o cliente é sempre tipo_id = 2 ):
 ```json
 {
   "nome": "cliente test",
-  "tipo_id": 2,
   "email": "cliente.test@example.com",
   "senha": "senhacliente"
 }
