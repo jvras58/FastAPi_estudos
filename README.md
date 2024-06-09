@@ -34,7 +34,7 @@ Este projeto está sendo desenvolvido com:
 
 ```bash
 # Clonar este repositório
-$ git clone git@github.com:jvras58/back-fastapi.git
+$ git clone git@github.com:jvras58/FastAPi_estudos.git
 
 # Ir para o repositório
 $ cd back-fastapi  
