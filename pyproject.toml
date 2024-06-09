@@ -2,7 +2,7 @@
 name = "FastAPi_estudos"
 version = "0.1.0"
 description = ""
-authors = ["jvras@cin.ufpe.br"]
+authors = ["jvras","jvras@cin.ufpe.br"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
